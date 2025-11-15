@@ -7,36 +7,38 @@
 
 
         <div class="row g-4">
-            <!-- Card 1 -->
+            <!--Total Customers Card -->
             <div class="col-md-6 mb-4">
                 <a href="/customers" class="text-decoration-none">
                     <div class="card h-100 shadow-sm rounded-4 border-0 bg-white cursor-pointer hover-scale">
                         <div class="card-body d-flex align-items-center">
                             <div class="me-3">
-                                <i class="bi bi-people fs-1 text-black"></i>
+                                <i class="bi bi-people fs-1 text-primary"></i>
                             </div>
                             <div>
                                 <h5 class="card-title text-dark">Total Customers</h5>
                                 <h3 class="card-text text-dark">{{ $customers['totalCustomers'] }}</h3>
                                 <small class="text-success">+{{ $customers['todayCustomers'] }} today</small>
+                                <small class="text-muted">{{ number_format($customers['todayPercent'], 2) }}% of total</small>
                             </div>
                         </div>
                     </div>
                 </a>
             </div>
 
-            <!-- Card 2 -->
+            <!--Active Services Card -->
             <div class="col-md-6 mb-4">
                 <a href="/services" class="text-decoration-none">
                     <div class="card h-100 shadow-sm rounded-4 border-0 bg-white cursor-pointer hover-scale">
                         <div class="card-body d-flex align-items-center">
                             <div class="me-3">
-                                <i class="bi bi-gear fs-1 text-black"></i>
+                                <i class="bi bi-gear fs-1 text-success"></i>
                             </div>
                             <div>
                                 <h5 class="card-title text-dark">Active Services</h5>
                                 <h3 class="card-text text-dark">{{ $services['activeServices'] }}</h3>
                                 <small class="text-success">+{{ $services['todayServices'] }} today</small>
+                                <small class="text-muted">{{ number_format($services['todayPercent'], 2) }}% of total</small>
                             </div>
                         </div>
                     </div>
