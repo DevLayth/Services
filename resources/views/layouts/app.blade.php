@@ -8,6 +8,7 @@
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
         body {
@@ -93,7 +94,7 @@
             <!-- Main Content -->
             <main class="col-md-10 ms-sm-auto px-4">
 
-            
+
 
                 <!-- Content -->
                 <div class="content-wrapper">

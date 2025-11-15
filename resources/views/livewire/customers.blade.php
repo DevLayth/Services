@@ -27,7 +27,8 @@
                         <td>{{ $customer->name }}</td>
                         <td>{{ $customer->phone }}</td>
                         <td class="text-center">
-                            <button
+                            <div>
+                               <button
                                 class="btn btn-sm btn-outline-primary me-2"
                                 wire:click="editCustomer({{ $customer->id }})"
                                 data-bs-toggle="modal"
@@ -41,6 +42,8 @@
                                 data-bs-target="#deleteCustomerModal">
                                 <i class="bi bi-trash"></i> Delete
                             </button>
+                            </div>
+
                         </td>
                     </tr>
                 @empty
