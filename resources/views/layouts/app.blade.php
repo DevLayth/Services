@@ -80,13 +80,13 @@
                 <h4 class="text-center mb-4 fw-bold text-white">ServiceApp</h4>
                 <ul class="nav flex-column">
                     <li class="nav-item mb-2">
-                        <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="/">Dashboard</a>
+                        <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link {{ Request::is('customers') ? 'active' : '' }}" href="/customers">Customers</a>
+                        <a class="nav-link {{ Request::is('customers') ? 'active' : '' }}" href="/customers"><i class="bi bi-people"></i> Customers</a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link {{ Request::is('services') ? 'active' : '' }}" href="/services">Services</a>
+                        <a class="nav-link {{ Request::is('services') ? 'active' : '' }}" href="/services"><i class="bi bi-gear"></i> Services</a>
                     </li>
                 </ul>
             </nav>
