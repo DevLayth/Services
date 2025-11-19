@@ -14,6 +14,15 @@
     @case('services')
         @include('components.services')
         @break
+
+    @case('subscription')
+        @include('components.subscription')
+        @break
+
+
+    @case('currencies')
+        @include('components.currencies')
+        @break
 {{--
     @default
         @include('pages.404') --}}

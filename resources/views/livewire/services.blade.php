@@ -7,7 +7,7 @@
         </div>
 
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#serviceModal">
-          <i class="bi bi-plus-lg"></i>  Add Service
+            <i class="bi bi-plus-lg"></i> Add Service
         </button>
     </div>
 
@@ -22,6 +22,7 @@
                         <th>Name</th>
                         <th>Description</th>
                         <th>Price</th>
+                        <th>Currency</th>
                         <th class="text-center">Actions</th>
                     </tr>
                 </thead>
@@ -32,13 +33,14 @@
                             <td>{{ $service->name }}</td>
                             <td>{{ $service->description }}</td>
                             <td>{{ $service->price }}</td>
+                            <td>{{ $service->currency_id ? collect($currencies)->where('id', $service->currency_id)->first()->code : 'N/A' }}</td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-outline-primary me-2"
+                                <button class="btn btn-sm btn-primary me-2"
                                     wire:click="editService({{ $service->id }})" data-bs-toggle="modal"
                                     data-bs-target="#serviceModal">
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </button>
-                                <button class="btn btn-sm btn-outline-danger"
+                                <button class="btn btn-sm btn-danger"
                                     wire:click="setServiceId({{ $service->id }}, '{{ $service->name }}')"
                                     data-bs-toggle="modal" data-bs-target="#deleteServiceModal">
                                     <i class="bi bi-trash"></i> Delete
@@ -47,7 +49,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">No services found.</td>
+                            <td colspan="6" class="text-center text-muted">No services found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -62,7 +64,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">{{ $editMode ? 'Edit Service' : 'Add New Service' }}</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInput"></button>
                 </div>
 
                 <form wire:submit.prevent="{{ $editMode ? 'updateService' : 'addService' }}">
@@ -93,17 +95,34 @@
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>
+                        <!-- Currency Field -->
+                      <div class="mb-3">
+    <label class="form-label @error('currencyId') text-danger @enderror">Currency</label>
+    <select class="form-select" wire:model.lazy="currencyId">
+        <option value="">{{$editMode? ($service->currency_id ? collect($currencies)->where('id', $service->currency_id)->first()->code : 'N/A' ):''}}</option>
+        @forelse($currencies as $currency)
+            <option value="{{ $currency->id }}" {{ $currencyId == $currency->id ? 'selected' : '' }}>
+                {{ $currency->name }} ({{ $currency->code }})
+            </option>
+        @empty
+            <option value="">No currencies available</option>
+        @endforelse
+    </select>
+    @error('currencyId')
+        <div class="text-danger small mt-1">{{ $message }}</div>
+    @enderror
+</div>
 
-                    </div>
 
-                    <div class="modal-footer">
-                        <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal"
-                            wire:click="resetInput">Close</button>
-                        <button type="submit" class="btn btn-primary" wire:loading.attr="disabled"
-                            @if ($editMode) data-bs-dismiss="modal" @endif>
-                            {{ $editMode ? 'Update Service' : 'Save Service' }}
-                        </button>
-                    </div>
+
+                        <div class="modal-footer">
+                            <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal"
+                                wire:click="resetInput">Close</button>
+                            <button type="submit" class="btn btn-primary" wire:loading.attr="disabled"
+                                @if ($editMode) data-bs-dismiss="modal" @endif>
+                                {{ $editMode ? 'Update Service' : 'Save Service' }}
+                            </button>
+                        </div>
                 </form>
             </div>
         </div>

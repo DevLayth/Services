@@ -11,7 +11,9 @@ class Customers extends Component
     public $name;
     public $phone;
     public $customerId;
-
+    public $customerServices = [];
+    public $allServices = [];
+    public $selectedServiceId;
     public $editMode = false;
 
     public $messages = [
@@ -21,6 +23,9 @@ class Customers extends Component
         'update.error'   => 'There was an error updating the customer.',
         'delete.success' => 'The customer has been deleted successfully.',
         'delete.error'   => 'There was an error deleting the customer.',
+
+        'service.add.success' => 'The service has been added to the customer successfully.',
+        'service.add.error'   => 'There was an error adding the service to the customer.',
     ];
 
     public $message;
@@ -65,6 +70,8 @@ class Customers extends Component
     public function fetchCustomers()
     {
         $this->customers = DB::table('customers')->orderBy('id')->get();
+        $this->allServices = DB::table('services')->orderBy('id')->get();
+
     }
 
 
@@ -170,4 +177,49 @@ class Customers extends Component
             $this->alert('delete.error', 'danger');
         }
     }
+
+    // ---------------------------------------------------------
+    // Manage Services for Customer
+    // ---------------------------------------------------------
+    public function manageServices($id, $name)
+    {
+        $this->resetInput();
+        $this->customerId = $id;
+        $this->name = $name;
+        $this->fetchServicesForCustomer($id);
+    }
+
+public function fetchServicesForCustomer($customerId)
+{
+    try {
+        $this->customerServices = DB::table('subscriptions')
+            ->join('customers', 'customers.id', '=', 'subscriptions.customer_id')
+            ->join('services', 'services.id', '=', 'subscriptions.service_id')
+            ->where('customers.id', $customerId)
+            ->select('*', 'services.*')
+            ->get();
+    } catch (\Exception $e) {
+        $this->customerServices = [];
+    }
+}
+
+public function confirmAddService()
+{
+    try {
+        DB::table('subscriptions')->insert([
+            'customer_id' => $this->customerId,
+            'service_id'  => $this->selectedServiceId,
+            'start_date'  => now(),
+            'created_at'  => now(),
+            'updated_at'  => now(),
+        ]);
+        $this->fetchServicesForCustomer($this->customerId);
+        $this->alert('service.add.success', 'success');
+    } catch (\Exception $e) {
+        $this->alert('service.add.error', 'danger');
+    }
+    $this->resetInput();
+    $this->fetchServicesForCustomer($this->customerId);
+}
+
 }

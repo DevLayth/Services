@@ -10,6 +10,8 @@ class Services extends Component
     public $services;
     public $name;
     public $price;
+    public $currencyId;
+    public $currencies=[];
     public $description;
     public $editMode = false;
     public $serviceId;
@@ -25,6 +27,7 @@ class Services extends Component
         'delete.error'   => 'There was an error deleting the service.',
     ];
 
+
     public function render()
     {
         return view('livewire.services');
@@ -33,12 +36,16 @@ class Services extends Component
     public function mount()
     {
         $this->fetchServices();
+        $this->fetchCurrencies();
     }
     private function fetchServices()
     {
         $this->services = DB::table('services')->get()->toArray();
+        }
+    private function fetchCurrencies()
+    {
+        $this->currencies = DB::table('currencies')->get()->toArray();
     }
-
     private function alert($key, $type = 'success')
     {
         $this->message = $this->messages[$key] ?? '';
@@ -53,6 +60,9 @@ class Services extends Component
             'price',
             'description',
             'serviceId',
+            'currencyId',
+            
+
         );
         $this->editMode = false;
     }
@@ -67,6 +77,7 @@ class Services extends Component
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'description' => 'nullable|string|max:1000',
+            'currencyId' => 'required|exists:currencies,id',
         ]);
 
         try {
@@ -74,6 +85,7 @@ class Services extends Component
                 'name' => $this->name,
                 'price' => $this->price,
                 'description' => $this->description,
+                'currency_id' => $this->currencyId,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -106,6 +118,7 @@ class Services extends Component
         $this->validate([
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
+            'currencyId' => 'nullable|exists:currencies,id',
             'description' => 'nullable|string|max:1000',
         ]);
 
@@ -113,6 +126,7 @@ class Services extends Component
             DB::table('services')->where('id', $this->serviceId)->update([
                 'name' => $this->name,
                 'price' => $this->price,
+                'currency_id' => $this->currencyId,
                 'description' => $this->description,
             ]);
             $this->resetInput();
@@ -127,15 +141,17 @@ class Services extends Component
     // ---------------------------------------------------------
     // Delete
     // ---------------------------------------------------------
-        public function setServiceId($id, $name)
+        public function setServiceId($id, $name, $currencyId)
         {
             $this->reset([
                 'serviceId',
                 'name',
+                'currencyId',
             ]);
 
             $this->serviceId = $id;
             $this->name = $name;
+            $this->currencyId = $currencyId;
         }
         public function deleteService()
         {

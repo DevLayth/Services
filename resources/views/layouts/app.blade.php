@@ -88,6 +88,12 @@
                     <li class="nav-item mb-2">
                         <a class="nav-link {{ Request::is('services') ? 'active' : '' }}" href="/services"><i class="bi bi-gear"></i> Services</a>
                     </li>
+                                <li class="nav-item mb-2">
+                                    <a class="nav-link {{ Request::is('subscription') ? 'active' : '' }}" href="/subscription"><i class="bi bi-card-checklist"></i> Subscription</a>
+                                </li>
+                                <li class="nav-item mb-2">
+                                    <a class="nav-link {{ Request::is('currencies') ? 'active' : '' }}" href="/currencies"><i class="bi bi-currency-exchange"></i> Currencies</a>
+                                </li>
                 </ul>
             </nav>
 

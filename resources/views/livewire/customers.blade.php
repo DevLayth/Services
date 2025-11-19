@@ -32,15 +32,22 @@
                         <td>{{ $customer->phone }}</td>
                         <td class="text-center">
                             <div>
+                                   <button wire:click="manageServices({{ $customer->id }}, '{{ $customer->name }}')"
+                                     class="btn btn-sm btn-secondary"
+                                     data-bs-toggle="modal"
+                                     data-bs-target="#manageServicesModal"
+                                     >
+                                <i class="bi bi-gear"></i> Services
+                            </button>
                                <button
-                                class="btn btn-sm btn-outline-primary me-2"
+                                class="btn btn-sm btn-primary"
                                 wire:click="editCustomer({{ $customer->id }})"
                                 data-bs-toggle="modal"
                                 data-bs-target="#customerModal">
                                 <i class="bi bi-pencil-square"></i> Edit
                             </button>
                             <button
-                                class="btn btn-sm btn-outline-danger"
+                                class="btn btn-sm btn-danger"
                                 wire:click="setCustomerId({{ $customer->id }}, '{{ $customer->name }}')"
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteCustomerModal">
@@ -68,7 +75,7 @@
                     <h5 class="modal-title">
                         {{ $editMode ? 'Edit Customer' : 'Add New Customer' }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInput"></button>
                 </div>
                 <form wire:submit.prevent="{{ $editMode ? 'updateCustomer' : 'addCustomer' }}">
                     <div class="modal-body">
@@ -121,6 +128,102 @@
         </div>
     </div>
 
+
+ <!-- Services Modal -->
+<div wire:ignore.self class="modal fade" id="manageServicesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Manage Services for <strong>{{ $name }}</strong></h5>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="btn btn-success btn-sm me-2" data-bs-toggle="modal" data-bs-target="#addServiceModal" wire:click="setCustomerId({{ $customerId }}, '{{ $name }}')">
+                        <i class="bi bi-plus-lg"></i> Add Service
+                    </button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetInput"></button>
+                </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped table-bordered align-middle mb-0">
+                        <thead class="table-dark text-center">
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Service Name</th>
+                                <th scope="col">Start Date</th>
+                                <th scope="col" style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($customerServices as $service)
+                                <tr class="text-center">
+                                    <td>{{ $service->id }}</td>
+                                    <td>{{ $service->name }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($service->start_date)->format('d M Y') }}</td>
+                                    <td>
+                                        <button class="btn btn-sm btn-warning" wire:click="editService({{ $service->id }})">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" wire:click="deleteService({{ $service->id }})">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No services available.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetInput">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Add services Modal -->
+<div wire:ignore.self class="modal fade" id="addServiceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Service to <strong>{{ $name }}</strong></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInput"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label @error('selectedServiceId') text-danger @enderror">Select Service</label>
+                    <select class="form-select" wire:model="selectedServiceId">
+                        <option value="">-- Choose Service --</option>
+                        @foreach($allServices as $service)
+                            <option value="{{ $service->id }}">{{ $service->name }}</option>
+                        @endforeach
+                    </select>
+                    @error('selectedServiceId')
+                        <div class="text-danger small mt-1">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetInput">Close</button>
+                <button type="button" class="btn btn-primary" wire:click="confirmAddService()" wire:loading.attr="disabled">
+                    Add Service
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
     <!-- Alerts (optional) -->
