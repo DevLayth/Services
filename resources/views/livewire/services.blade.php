@@ -33,7 +33,8 @@
                             <td>{{ $service->name }}</td>
                             <td>{{ $service->description }}</td>
                             <td>{{ $service->price }}</td>
-                            <td>{{ $service->currency_id ? collect($currencies)->where('id', $service->currency_id)->first()->code : 'N/A' }}</td>
+                            <td>{{ $service->currency_id ? collect($currencies)->where('id', $service->currency_id)->first()->code : 'N/A' }}
+                            </td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-primary me-2"
                                     wire:click="editService({{ $service->id }})" data-bs-toggle="modal"
@@ -41,7 +42,7 @@
                                     <i class="bi bi-pencil-square"></i> Edit
                                 </button>
                                 <button class="btn btn-sm btn-danger"
-                                    wire:click="setServiceId({{ $service->id }}, '{{ $service->name }}')"
+                                    wire:click="setServiceId({{ $service->id }}, '{{ $service->name }}', '{{ $service->currency_id }}')"
                                     data-bs-toggle="modal" data-bs-target="#deleteServiceModal">
                                     <i class="bi bi-trash"></i> Delete
                                 </button>
@@ -59,7 +60,8 @@
 
 
     <!-- Add/Edit Service Modal -->
-    <div wire:ignore.self class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="serviceModal" tabindex="-1" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
@@ -96,22 +98,25 @@
                             @enderror
                         </div>
                         <!-- Currency Field -->
-                      <div class="mb-3">
-    <label class="form-label @error('currencyId') text-danger @enderror">Currency</label>
-    <select class="form-select" wire:model.lazy="currencyId">
-        <option value="">{{$editMode? ($service->currency_id ? collect($currencies)->where('id', $service->currency_id)->first()->code : 'N/A' ):''}}</option>
-        @forelse($currencies as $currency)
-            <option value="{{ $currency->id }}" {{ $currencyId == $currency->id ? 'selected' : '' }}>
-                {{ $currency->name }} ({{ $currency->code }})
-            </option>
-        @empty
-            <option value="">No currencies available</option>
-        @endforelse
-    </select>
-    @error('currencyId')
-        <div class="text-danger small mt-1">{{ $message }}</div>
-    @enderror
-</div>
+                        <div class="mb-3">
+                            <label class="form-label @error('currencyId') text-danger @enderror">Currency</label>
+                            <select class="form-select" wire:model.lazy="currencyId">
+                                <option value="">
+                                    {{ $editMode ? ($service->currency_id ? collect($currencies)->where('id', $service->currency_id)->first()->code : 'N/A') : '' }}
+                                </option>
+                                @forelse($currencies as $currency)
+                                    <option value="{{ $currency->id }}"
+                                        {{ $currencyId == $currency->id ? 'selected' : '' }}>
+                                        {{ $currency->name }} ({{ $currency->code }})
+                                    </option>
+                                @empty
+                                    <option value="">No currencies available</option>
+                                @endforelse
+                            </select>
+                            @error('currencyId')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
 
 
 
@@ -123,25 +128,29 @@
                                 {{ $editMode ? 'Update Service' : 'Save Service' }}
                             </button>
                         </div>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
 
+
     <!-- Delete Confirmation Modal -->
-    <div wire:ignore.self class="modal fade" id="deleteServiceModal" tabindex="-1" aria-hidden="true">
+    <div wire:ignore.self class="modal fade" id="deleteServiceModal" tabindex="-1" aria-hidden="true"
+        data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold">Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button wire:click="resetInput" type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center py-4 fs-5">
                     <strong class="text-danger">Are you sure?</strong>
                     <p class="text-muted">You are about to delete: {{ $name }}</p>
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"
+                        wire:click="resetInput">Cancel</button>
                     <button type="button" class="btn btn-danger px-4" wire:click="deleteService"
                         wire:loading.attr="disabled" data-bs-dismiss="modal">Yes, Delete</button>
                 </div>

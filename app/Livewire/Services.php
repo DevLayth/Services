@@ -11,7 +11,7 @@ class Services extends Component
     public $name;
     public $price;
     public $currencyId;
-    public $currencies=[];
+    public $currencies = [];
     public $description;
     public $editMode = false;
     public $serviceId;
@@ -38,20 +38,29 @@ class Services extends Component
         $this->fetchServices();
         $this->fetchCurrencies();
     }
-    private function fetchServices()
+    public function fetchServices()
     {
         $this->services = DB::table('services')->get()->toArray();
-        }
-    private function fetchCurrencies()
-    {
-        $this->currencies = DB::table('currencies')->get()->toArray();
     }
-    private function alert($key, $type = 'success')
+
+    public function fetchCurrencies()
+    {
+        try {
+            $this->currencies = DB::table('currencies')->get()->toArray();
+        } catch (\Exception $e) {
+            $this->currencies = [];
+        }
+    }
+
+
+    public function alert($key, $type = 'success')
     {
         $this->message = $this->messages[$key] ?? '';
         $this->messageType = $type;
         $this->showMessage = true;
     }
+
+
     public function resetInput()
     {
         $this->resetValidation();
@@ -61,7 +70,7 @@ class Services extends Component
             'description',
             'serviceId',
             'currencyId',
-            
+
 
         );
         $this->editMode = false;
@@ -141,27 +150,27 @@ class Services extends Component
     // ---------------------------------------------------------
     // Delete
     // ---------------------------------------------------------
-        public function setServiceId($id, $name, $currencyId)
-        {
-            $this->reset([
-                'serviceId',
-                'name',
-                'currencyId',
-            ]);
+    public function setServiceId($id, $name,$currencyId)
+    {
+        $this->reset([
+            'serviceId',
+            'name',
+            'currencyId',
+        ]);
 
-            $this->serviceId = $id;
-            $this->name = $name;
-            $this->currencyId = $currencyId;
+        $this->serviceId = $id;
+        $this->name = $name;
+        $this->currencyId = $currencyId;
+    }
+    public function deleteService()
+    {
+        try {
+            DB::table('services')->where('id', $this->serviceId)->delete();
+            $this->alert('delete.success', 'success');
+            $this->fetchServices();
+        } catch (\Exception $e) {
+            $this->alert('delete.error', 'danger');
+            $this->fetchServices();
         }
-        public function deleteService()
-        {
-            try {
-                DB::table('services')->where('id', $this->serviceId)->delete();
-                $this->alert('delete.success', 'success');
-                $this->fetchServices();
-            } catch (\Exception $e) {
-                $this->alert('delete.error', 'danger');
-                $this->fetchServices();
-            }
-        }
+    }
 }

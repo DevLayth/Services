@@ -23,7 +23,9 @@
     @case('currencies')
         @include('components.currencies')
         @break
-{{--
+
     @default
-        @include('pages.404') --}}
+        @include('components.404')
+
+
 @endswitch

@@ -68,16 +68,18 @@ class Currencies extends Component
 
     }
 
-    private function resetInput()
+    public function resetInput()
     {
         $this->name = '';
         $this->code = '';
         $this->symbol = '';
         $this->currencyId = null;
         $this->editMode = false;
+
+        $this->resetValidation();
     }
 
-    private function fetchCurrencies()
+    public function fetchCurrencies()
     {
         $this->currencies = DB::table('currencies')->get()->toArray();
     }

@@ -1,51 +1,54 @@
 <div>
     <!-- Header -->
-<div class="container my-5">
-  <div class="d-flex justify-content-between align-items-center my-4 py-2 px-2 border-bottom">
-    <div class="d-flex align-items-center">
-        <i class="bi bi-currency-exchange fs-1 text-black"></i>
-    <h2 class="ms-3">Currencies</h2>
+    <div class="container my-5">
+        <div class="d-flex justify-content-between align-items-center my-4 py-2 px-2 border-bottom">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-currency-exchange fs-1 text-black"></i>
+                <h2 class="ms-3">Currencies</h2>
+            </div>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#currencyModal">
+                <i class="bi bi-plus-lg"></i> Add Currency
+            </button>
+        </div>
     </div>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#currencyModal">
-           <i class="bi bi-plus-lg"></i> Add Currency
-        </button>
-    </div>
-  </div>
     <!-- Currencies Table -->
-  <div class="table-responsive">
-    <table class="table table-bordered table-hover">
-      <thead class="table-dark">
-        <tr>
-          <th>Name</th>
-          <th>Code</th>
-          <th>Symbol</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        @foreach($currencies as $currency)
-        <tr>
-          <td>{{ $currency->name }}</td>
-          <td>{{ $currency->code }}</td>
-          <td>{{ $currency->symbol }}</td>
-            <td>
-                <button class="btn btn-sm btn-primary me-2"
-                wire:click="editCurrency({{ $currency->id }})" data-bs-toggle="modal"
-                data-bs-target="#currencyModal">
-                <i class="bi bi-pencil-square"></i> Edit
-                </button>
-                <button class="btn btn-sm btn-danger"
-                wire:click="setCurrencyId({{ $currency->id }}, '{{ $currency->name }}')"
-                data-bs-toggle="modal" data-bs-target="#deleteCurrencyModal">
-                <i class="bi bi-trash"></i> Delete
-                </button>
-            </td>
-        </tr>
-        @endforeach
-      </tbody>
-    </table>
-  </div>
-
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Symbol</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($currencies as $currency)
+                    <tr>
+                        <td>{{ $currency->name }}</td>
+                        <td>{{ $currency->code }}</td>
+                        <td>{{ $currency->symbol }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-2" wire:click="editCurrency({{ $currency->id }})"
+                                data-bs-toggle="modal" data-bs-target="#currencyModal">
+                                <i class="bi bi-pencil-square"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger"
+                                wire:click="setCurrencyId({{ $currency->id }}, '{{ $currency->name }}')"
+                                data-bs-toggle="modal" data-bs-target="#deleteCurrencyModal">
+                                <i class="bi bi-trash"></i> Delete
+                            </button>
+                        </td>
+                    </tr>
+                @endforeach
+                @empty($currencies)
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">No currencies found.</td>
+                    </tr>
+                @endempty
+            </tbody>
+        </table>
+    </div>
 
     <!-- Add/Edit Currency Modal -->
     <div wire:ignore.self class="modal fade" id="currencyModal" tabindex="-1" aria-hidden="true">
@@ -55,38 +58,37 @@
                     <h5 class="modal-title">
                         {{ $editMode ? 'Edit Currency' : 'Add New Currency' }}
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInput"></button>
                 </div>
                 <form wire:submit.prevent="{{ $editMode ? 'updateCurrency' : 'addCurrency' }}">
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label @error('name') text-danger @enderror">Name</label>
                             <input type="text" class="form-control" wire:model.lazy="name" autofocus>
-                        @error('name')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
+                            @error('name')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label @error('code') text-danger @enderror">Code</label>
-                            <input type="text" class="form-control" wire:model.lazy="code" >
-                        @error('code')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
+                            <input type="text" class="form-control" wire:model.lazy="code">
+                            @error('code')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                         <div class="mb-3">
                             <label class="form-label @error('symbol') text-danger @enderror">Symbol</label>
-                            <input type="text" class="form-control" wire:model.lazy="symbol" >
-                        @error('symbol')
-                            <div class="text-danger small mt-1">{{ $message }}</div>
-                        @enderror
+                            <input type="text" class="form-control" wire:model.lazy="symbol">
+                            @error('symbol')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" wire:loading.attr="disabled" wire:click="{{ $editMode ? 'updateCurrency' : 'addCurrency' }}"
-                          @if ($editMode)
-                        data-bs-dismiss="modal"
-                        @endif>
+                        <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetInput">Close</button>
+                        <button type="button" class="btn btn-primary" wire:loading.attr="disabled"
+                            wire:click="{{ $editMode ? 'updateCurrency' : 'addCurrency' }}"
+                            @if ($editMode) data-bs-dismiss="modal" @endif>
                             {{ $editMode ? 'Update Currency' : 'Save Currency' }}
                         </button>
                     </div>
@@ -101,15 +103,16 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold">Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" wire:click="resetInput"> </button>
                 </div>
                 <div class="modal-body text-center py-4 fs-5">
                     <strong class="text-danger">Are you sure?</strong>
                     <p class="text-muted">You are about to delete: {{ $name }}</p>
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger px-4" wire:click="deleteCurrency" wire:loading.attr="disabled" data-bs-dismiss="modal">Yes, Delete</button>
+                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" wire:click="resetInput"> Cancel</button>
+                    <button type="button" class="btn btn-danger px-4" wire:click="deleteCurrency"
+                        wire:loading.attr="disabled" data-bs-dismiss="modal">Yes, Delete</button>
                 </div>
             </div>
         </div>
@@ -118,22 +121,22 @@
 
 
     <!-- Alerts (optional) -->
-@if ($showMessage)
-    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080; min-width: 250px;">
-        <div class="alert alert-{{ $messageType }} d-flex align-items-center justify-content-between shadow-sm rounded-3 p-2 mb-2"
-            role="alert">
-            <div class="d-flex align-items-center">
-                <svg class="bi flex-shrink-0 me-2" width="20" height="20" role="img"
-                    aria-label="{{ $messageType == 'success' ? 'Success:' : 'Error:' }}">
-                    <use
-                        xlink:href="#{{ $messageType == 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' }}" />
-                </svg>
-                <div class="small">{{ $message }}</div>
+    @if ($showMessage)
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080; min-width: 250px;">
+            <div class="alert alert-{{ $messageType }} d-flex align-items-center justify-content-between shadow-sm rounded-3 p-2 mb-2"
+                role="alert">
+                <div class="d-flex align-items-center">
+                    <svg class="bi flex-shrink-0 me-2" width="20" height="20" role="img"
+                        aria-label="{{ $messageType == 'success' ? 'Success:' : 'Error:' }}">
+                        <use
+                            xlink:href="#{{ $messageType == 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' }}" />
+                    </svg>
+                    <div class="small">{{ $message }}</div>
+                </div>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    </div>
-@endif
+    @endif
 
 
     <!-- Bootstrap Icons -->
@@ -149,5 +152,5 @@
     </svg>
 
 
-</div>
+
 </div>

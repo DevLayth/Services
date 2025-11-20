@@ -205,11 +205,20 @@ public function fetchServicesForCustomer($customerId)
 
 public function confirmAddService()
 {
+    $this->validate([
+        'selectedServiceId' => 'required|exists:services,id',
+    ]);
+
+    $price = DB::table('services')->where('id', $this->selectedServiceId)->value('price') ?? 0;
+
     try {
         DB::table('subscriptions')->insert([
             'customer_id' => $this->customerId,
             'service_id'  => $this->selectedServiceId,
+            'price'       => $price,
+            'currency_id'  => DB::table('services')->where('id', $this->selectedServiceId)->value('currency_id') ?? null,
             'start_date'  => now(),
+            'next_payment_date'  => now()->addMonth(),
             'created_at'  => now(),
             'updated_at'  => now(),
         ]);
