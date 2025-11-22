@@ -24,6 +24,12 @@ class Dashboard extends Component
         'todayPercent',
     ];
 
+    public $invoices = [
+        'totalInvoices',
+        'todayInvoices',
+        'todayPercent',
+    ];
+
 
     public function render()
     {
@@ -44,5 +50,9 @@ class Dashboard extends Component
         $this->subscriptions['todaySubscriptions'] = DB::table('subscriptions')->whereDate('created_at', today())->count();
         $this->subscriptions['todayPercent'] = $this->subscriptions['totalSubscriptions'] > 0 ? ($this->subscriptions['todaySubscriptions'] / $this->subscriptions['totalSubscriptions']) * 100 : 0;
 
+        $this->invoices['totalInvoices'] = DB::table('paid_invoices')->count();
+        $this->invoices['todayInvoices'] = DB::table('paid_invoices')->whereDate('created_at', today())->count();
+        $this->invoices['todayPercent'] = $this->invoices['totalInvoices'] > 0 ? ($this->invoices['todayInvoices'] / $this->invoices['totalInvoices']) * 100 : 0;
     }
+
 }

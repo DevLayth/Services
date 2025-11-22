@@ -21,13 +21,41 @@ class Subscription extends Component
     public $discount = 0;
     public $finalAmount = 0;
 
-    public $paymentMethod = '';
+    public $showMessage = false;
+    public $message;
+    public $messageType;
+    public $messages = [
+        'pay.success' => 'Payment has been processed successfully.',
+        'pay.error'   => 'There was an error processing the payment.',
+    ];
+
+    public $accounts = [];
+    public $selectedAccountId;
+    public $paymentMethod;
+
+    public function fetchAccounts()
+    {
+        try {
+            $this->accounts = DB::table('accounts')->get();
+        } catch (\Exception $e) {
+            Log::error($e);
+            $this->accounts = [];
+        }
+    }
+
+
+    public function alert($key, $type = 'success')
+    {
+        $this->message = $this->messages[$key] ?? '';
+        $this->messageType = $type;
+        $this->showMessage = true;
+    }
 
     public function mount()
     {
         $this->loadSubscriptions();
         $this->loadCurrencies();
-
+        $this->fetchAccounts();
     }
 
     public function render()
@@ -129,7 +157,6 @@ class Subscription extends Component
 
             $this->invoices = $invoices;
             $this->invoicesCount = count($invoices);
-
         } catch (\Exception $e) {
             Log::error($e);
             $this->invoices = [];
@@ -137,32 +164,29 @@ class Subscription extends Component
         }
     }
 
-// Called automatically when paymentMonths changes
-public function updatedPaymentMonths($value)
-{
-    $this->calculateTotal();
-}
+    public function updatedPaymentMonths($value)
+    {
+        $this->calculateTotal();
+    }
 
-// Called automatically when discount changes
-public function updatedDiscount($value)
-{
-    $this->calculateTotal();
-}
+    public function updatedDiscount($value)
+    {
+        $this->calculateTotal();
+    }
 
     public function calculateTotal()
     {
-        $discountFactor = $this->discount / 100;
+        $discountFactor = $this->discount? $this->discount / 100: 0/100;
         $this->finalAmount = round($this->amount * $this->paymentMonths * (1 - $discountFactor), 2);
     }
 
-    // Process payment
     public function pay()
     {
         $this->validate([
             'selectedSubscriptionId' => 'required|integer',
             'paymentMonths' => 'required|integer|min:1',
             'discount' => 'numeric|min:0|max:100',
-            'paymentMethod' => 'required|string',
+            'selectedAccountId' => 'required|integer',
         ]);
 
         DB::beginTransaction();
@@ -177,50 +201,69 @@ public function updatedDiscount($value)
             $discountFactor = $this->discount / 100;
             $finalAmount = $oneMonthPrice * $this->paymentMonths * (1 - $discountFactor);
             $nextPaymentDate = Carbon::parse($subscription->next_payment_date);
+            $paidTo = $nextPaymentDate->copy()->addMonths((int) $this->paymentMonths);
 
-            // Insert paid invoice
-            DB::table('paid_invoices')->insert([
+           $invoiceId =DB::table('paid_invoices')->insertGetId([
                 'subscription_id' => $subscription->id,
                 'amount_one_month' => $oneMonthPrice,
+                'months' => (int) $this->paymentMonths,
                 'amount' => $finalAmount,
                 'currency_id' => $subscription->currency_id,
                 'discount' => $discountFactor,
                 'paid_from' => $nextPaymentDate,
-                'paid_to' => $nextPaymentDate->copy()->addMonths($this->paymentMonths),
+                'paid_to' => $paidTo,
                 'paid_at' => now(),
-                'payment_method' => $this->paymentMethod,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            // Update subscription next payment
-            $newNext = $nextPaymentDate->copy()->addMonths($this->paymentMonths);
+
+            $newNext = $nextPaymentDate->copy()->addMonths((int) $this->paymentMonths);
             DB::table('subscriptions')
                 ->where('id', $subscription->id)
                 ->update(['next_payment_date' => $newNext]);
 
+            createJournalEntry(
+
+                'Subscription Payment - Subscription #' . $subscription->id,
+                'Journal entry for subscription payment ID ' . $subscription->id,
+                [
+                    [
+                        'account_id' => $this->selectedAccountId,
+                        'debit' => 0,
+                        'credit' => $finalAmount,
+                    ],
+                    [
+                        'account_id' => $this->paymentMethod,
+                        'debit' => $finalAmount,
+                        'credit' => 0,
+                    ],
+                ]
+                , $invoiceId, 'paid_invoices'
+            );
             DB::commit();
             $this->loadSubscriptions();
+            $this->alert('pay.success', 'success');
             $this->resetInputs();
-            //alert or notify success
-
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error($e);
-            //alert or notify error
+            $this->alert('pay.error', 'danger');
         }
     }
 
 
     public function resetInputs()
     {
+        $this->resetValidation();
         $this->selectedSubscriptionId = null;
         $this->amount = 0;
         $this->currency_code = '';
         $this->paymentMonths = 1;
         $this->discount = 0;
         $this->finalAmount = 0;
-        $this->paymentMethod = '';
+        $this->selectedAccountId = null;
+        $this->paymentMethod = null;
         $this->invoices = [];
         $this->invoicesCount = 0;
     }

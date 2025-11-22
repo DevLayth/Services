@@ -43,7 +43,7 @@
                                 @endif
                             </td>
                             <td class="text-center">
-                                <button class="btn btn-sm btn-info me-1"
+                                <button class="btn btn-sm btn-primary me-1"
                                         wire:click="generateInvoices({{ $sub->id }})"
                                         data-bs-toggle="modal"
                                         data-bs-target="#invoiceModal">
@@ -116,6 +116,24 @@
         </div>
     </div>
 
+        <!-- Alert Messages -->
+    @if ($showMessage)
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080; min-width: 250px;">
+            <div class="alert alert-{{ $messageType }} d-flex align-items-center justify-content-between shadow-sm rounded-3 p-2 mb-2"
+                role="alert">
+                <div class="d-flex align-items-center">
+                    <svg class="bi flex-shrink-0 me-2" width="20" height="20" role="img"
+                        aria-label="{{ $messageType == 'success' ? 'Success:' : 'Error:' }}">
+                        <use
+                            xlink:href="#{{ $messageType == 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill' }}" />
+                    </svg>
+                    <div class="small">{{ $message }}</div>
+                </div>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        </div>
+    @endif
+
     <!-- PAYMENT MODAL -->
     <div wire:ignore.self class="modal fade" id="paymentModal" tabindex="-1">
         <div class="modal-dialog">
@@ -123,7 +141,7 @@
 
                 <div class="modal-header">
                     <h5 class="modal-title">Process Payment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInputs"></button>
                 </div>
 
                 <div class="modal-body">
@@ -132,8 +150,7 @@
                         <label class="form-label">Months to Pay</label>
                         <input type="number" class="form-control"
                                wire:model.live="paymentMonths"
-                               min="1"
-                               max="{{ $invoicesCount }}">
+                               min="1">
                     </div>
 
                     <div class="mb-3">
@@ -154,8 +171,25 @@
                         <label class="form-label">Payment Method</label>
                         <select class="form-select" wire:model="paymentMethod">
                             <option value="">Select</option>
-                            <option value="cash">Cash</option>
+                            @foreach ($accounts as $acc)
+                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->account_type }})</option>
+                            @endforeach
                         </select>
+                        @error('selectedAccountId')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Payment from</label>
+                        <select class="form-select" wire:model="selectedAccountId">
+                            <option value="">Select</option>
+                            @foreach ($accounts as $acc)
+                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->account_type }})</option>
+                            @endforeach
+                        </select>
+                        @error('selectedAccountId')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
                     </div>
 
                 </div>
@@ -168,5 +202,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Bootstrap Icons -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+        <symbol id="check-circle-fill" fill="currentColor" viewBox="0 0 16 16">
+            <path
+                d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM6.97 11.03a.75.75 0 0 0 1.07 0L13.03 6l-1.06-1.06L7 9.94 4.97 7.91 3.91 9l3.06 3.03z" />
+        </symbol>
+        <symbol id="exclamation-triangle-fill" fill="currentColor" viewBox="0 0 16 16">
+            <path
+                d="M8 0c-.69 0-1.34.36-1.66.92L.165 14.235c-.312.564.027 1.265.66 1.265h14.35c.633 0 .972-.701.66-1.265L9.66.92A1.75 1.75 0 0 0 8 0zm.93 11.412a.625.625 0 1 1-1.25 0 .625.625 0 0 1 1.25 0zm-.93-7.25c.335 0 .625.28.625.625v4.5a.625.625 0 0 1-1.25 0v-4.5c0-.345.29-.625.625-.625z" />
+        </symbol>
+    </svg>
 
 </div>

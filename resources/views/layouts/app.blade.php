@@ -82,20 +82,37 @@
                 <h4 class="text-center mb-4 fw-bold text-white">ServiceApp</h4>
                 <ul class="nav flex-column">
                     <li class="nav-item mb-2">
-                        <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="/"><i class="bi bi-speedometer2"></i> Dashboard</a>
+                        <a class="nav-link {{ Request::is('/') ? 'active' : '' }}" href="/"><i
+                                class="bi bi-speedometer2"></i> Dashboard</a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link {{ Request::is('customers') ? 'active' : '' }}" href="/customers"><i class="bi bi-people"></i> Customers</a>
+                        <a class="nav-link {{ Request::is('customers') ? 'active' : '' }}" href="/customers"><i
+                                class="bi bi-people"></i> Customers</a>
                     </li>
                     <li class="nav-item mb-2">
-                        <a class="nav-link {{ Request::is('services') ? 'active' : '' }}" href="/services"><i class="bi bi-gear"></i> Services</a>
+                        <a class="nav-link {{ Request::is('services') ? 'active' : '' }}" href="/services"><i
+                                class="bi bi-gear"></i> Services</a>
                     </li>
-                                <li class="nav-item mb-2">
-                                    <a class="nav-link {{ Request::is('subscription') ? 'active' : '' }}" href="/subscription"><i class="bi bi-card-checklist"></i> Subscription</a>
-                                </li>
-                                <li class="nav-item mb-2">
-                                    <a class="nav-link {{ Request::is('currencies') ? 'active' : '' }}" href="/currencies"><i class="bi bi-currency-exchange"></i> Currencies</a>
-                                </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {{ Request::is('subscription') ? 'active' : '' }}" href="/subscription"><i
+                                class="bi bi-card-checklist"></i> Subscription</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {{ Request::is('currencies') ? 'active' : '' }}" href="/currencies"><i
+                                class="bi bi-currency-exchange"></i> Currencies</a>
+                    </li>
+                        <li class="nav-item mb-2">
+                            <a class="nav-link {{ Request::is('accounts') ? 'active' : '' }}" href="/accounts"><i
+                                    class="bi bi-coin"></i> Accounts</a>
+                        </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {{ Request::is('paid-invoices') ? 'active' : '' }}" href="/paid-invoices"><i
+                                class="bi bi-receipt"></i> Paid Invoices</a>
+                    </li>
+                    <li class="nav-item mb-2">
+                        <a class="nav-link {{ Request::is('journal-entries') ? 'active' : '' }}" href="/journal-entries"><i
+                                class="bi bi-journal-text"></i> Journal Entries</a>
+                    </li>
                 </ul>
             </nav>
 

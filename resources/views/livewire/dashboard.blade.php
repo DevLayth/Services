@@ -70,5 +70,27 @@
                 </a>
             </div>
 
+            <!--Total paid invoices Card -->
+            <div class="col-md-6 mb-4">
+                <a href="/paid-invoices" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm rounded-4 border-0 bg-white cursor-pointer hover-scale">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="me-3">
+
+                                <div> <i class="bi bi-receipt fs-1 text-warning"></i></div>
+                            </div>
+                            <div>
+                                <h5 class="card-title text-dark">Total Invoices</h5>
+                                <h3 class="card-text text-dark">{{ $invoices['totalInvoices'] }}</h3>
+                                <small class="text-success">+{{ $invoices['todayInvoices'] }}
+                                    today</small>
+                                <small class="text-muted">{{ number_format($invoices['todayPercent'], 2) }}% of
+                                    total</small>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+
 
         </div>

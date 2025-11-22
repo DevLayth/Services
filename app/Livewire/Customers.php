@@ -210,13 +210,14 @@ public function confirmAddService()
     ]);
 
     $price = DB::table('services')->where('id', $this->selectedServiceId)->value('price') ?? 0;
+    $currencyId = DB::table('services')->where('id', $this->selectedServiceId)->value('currency_id') ?? null;
 
     try {
         DB::table('subscriptions')->insert([
             'customer_id' => $this->customerId,
             'service_id'  => $this->selectedServiceId,
             'price'       => $price,
-            'currency_id'  => DB::table('services')->where('id', $this->selectedServiceId)->value('currency_id') ?? null,
+            'currency_id'  => $currencyId,
             'start_date'  => now(),
             'next_payment_date'  => now()->addMonth(),
             'created_at'  => now(),

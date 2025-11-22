@@ -1,0 +1,44 @@
+<?php
+
+use Illuminate\Support\Facades\DB;
+
+if (!function_exists('createJournalEntry')) {
+       function createJournalEntry($reference, $description, array $lines, $invoiceId , $invoiceTableName )
+    {
+
+        try {
+        return DB::transaction(function () use ($reference, $description, $lines, $invoiceId, $invoiceTableName) {
+            $totalDebit  = array_sum(array_column($lines, 'debit'));
+            $totalCredit = array_sum(array_column($lines, 'credit'));
+
+            if ($totalDebit != $totalCredit) {
+                throw new Exception("Journal entry is not balanced. Debit = $totalDebit, Credit = $totalCredit");
+            }
+
+            $journalEntryId = DB::table('journal_entries')->insertGetId([
+                'reference'   => $reference,
+                'description' => $description,
+                'invoice_id' => $invoiceId,
+                'invoice_table_name' => $invoiceTableName,
+                'created_at'  => now(),
+                'updated_at'  => now(),
+            ]);
+
+            foreach ($lines as $line) {
+                DB::table('journal_entries_lines')->insert([
+                    'journal_entry_id' => $journalEntryId,
+                    'account_id'       => $line['account_id'],
+                    'debit'            => $line['debit'],
+                    'credit'           => $line['credit'],
+                    'created_at'       => now(),
+                    'updated_at'       => now(),
+                ]);
+            }
+        } );
+    } catch (\Exception $e) {
+
+        throw $e;
+    }
+    }
+}
+
