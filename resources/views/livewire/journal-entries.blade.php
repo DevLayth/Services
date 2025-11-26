@@ -52,7 +52,7 @@
                         <i class="bi bi-journal-text me-2"></i>
                         Journal Entry "{{ $selectedJournalEntryId }}" Lines
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInput" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
 
                 <!-- Body -->
@@ -110,7 +110,7 @@
 
                 <!-- Footer -->
                 <div class="modal-footer border-0 px-4 pb-4">
-                    <button type="button" class="btn btn-dark px-4" data-bs-dismiss="modal">
+                    <button type="button" wire:click="resetInput" class="btn btn-dark px-4" data-bs-dismiss="modal">
                         <i class="bi bi-x-circle me-1"></i> Close
                     </button>
                 </div>

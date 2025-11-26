@@ -61,58 +61,93 @@ class Invoices extends Component
     }
 
     public function deleteInvoice()
-    {
-        if ($this->selectedInvoiceId) {
-            try {
-                $invoice=DB::table('paid_invoices')->where('id', $this->selectedInvoiceId)->get()->first();
-                if (!$invoice) {
-                    $this->alert('delete.Error', 'error');
-                    return;
-                }
-
-                $subscription=DB::table('subscriptions')->where('id', $invoice->subscription_id)->get()->first();
-                if (!$subscription) {
-                    $this->alert('delete.Error', 'error');
-                    return;
-                }
-                $months = (int) $invoice->months;
-                $newNextPaymentDate = \Carbon\Carbon::parse($subscription->next_payment_date)->subMonths($months);
-
-               DB::beginTransaction();
-                DB::table('subscriptions')
-                    ->where('id', $subscription->id)
-                    ->update(['next_payment_date' => $newNextPaymentDate]);
-
-                createJournalEntry(
-                    'Invoice Deletion - Subscription #' . $subscription->id,
-                    'Reversing journal entry for deleted invoice ID ' . $this->selectedInvoiceId,
-                    $this->selectedInvoiceId,
-                    'paid_invoices',
-                    [
-                        [
-                            'account_id' => 1,
-                            'debit' => $invoice->amount,
-                            'credit' => 0,
-                        ],
-                        [
-                            'account_id' => 5,
-                            'debit' => 0,
-                            'credit' => $invoice->amount,
-                        ],
-                    ]
-                );
-
-                DB::table('paid_invoices')->where('id', $this->selectedInvoiceId)->delete();
-
-                DB::commit();
-                $this->alert('delete.Success', 'success');
-                $this->resetInput();
-                $this->loadInvoices();
-            } catch (\Exception $e) {
-                DB::rollBack();
-                $this->resetInput();
-                $this->alert('delete.Error', 'error');
-            }
-        }
+{
+    if (!$this->selectedInvoiceId) {
+        return;
     }
+
+    try {
+        $invoice = DB::table('paid_invoices')
+            ->where('id', $this->selectedInvoiceId)
+            ->first();
+
+        if (!$invoice) {
+            $this->alert('delete.Error', 'danger');
+            return;
+        }
+
+        $subscription = DB::table('subscriptions')
+            ->where('id', $invoice->subscription_id)
+            ->first();
+
+        if (!$subscription) {
+            $this->alert('delete.Error', 'danger');
+            return;
+        }
+
+        $months = (int) $invoice->months;
+        $newNextPaymentDate = \Carbon\Carbon::parse($subscription->next_payment_date)
+            ->subMonths($months)
+            ->format('Y-m-d');
+
+        DB::beginTransaction();
+
+        DB::table('subscriptions')
+            ->where('id', $subscription->id)
+            ->update(['next_payment_date' => $newNextPaymentDate]);
+
+        $entryLines = DB::table('journal_entries_lines')
+            ->join('journal_entries', 'journal_entries.id', '=', 'journal_entries_lines.journal_entry_id')
+            ->select('journal_entries_lines.account_id', 'journal_entries_lines.debit', 'journal_entries_lines.credit')
+            ->get();
+
+        if ($entryLines->count() < 2) {
+            throw new \Exception("Journal entry has insufficient lines");
+        }
+
+        $debitLine  = $entryLines->firstWhere('debit', '>', 0);
+        $creditLine = $entryLines->firstWhere('credit', '>', 0);
+
+        if (!$debitLine || !$creditLine) {
+            throw new \Exception("Could not determine debit/credit accounts for reversal");
+        }
+
+        createJournalEntry(
+            'Invoice Deletion - Subscription #' . $subscription->id,
+            'Reversing journal entry for deleted invoice ID ' . $this->selectedInvoiceId,
+
+            [
+                [
+                    'account_id' => $creditLine->account_id,
+                    'debit' => $invoice->amount,
+                    'credit' => 0,
+                ],
+
+                [
+                    'account_id' => $debitLine->account_id,
+                    'debit' => 0,
+                    'credit' => $invoice->amount,
+                ],
+            ],$this->selectedInvoiceId,
+            'paid_invoices'
+        );
+
+        DB::table('paid_invoices')
+            ->where('id', $this->selectedInvoiceId)
+            ->delete();
+
+        DB::commit();
+
+        $this->alert('delete.Success', 'success');
+        $this->resetInput();
+        $this->loadInvoices();
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        logger()->error("Invoice deletion failed: ".$e->getMessage());
+        $this->alert('delete.Error', 'danger');
+        $this->resetInput();
+    }
+}
+
 }

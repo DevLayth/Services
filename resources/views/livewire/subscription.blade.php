@@ -72,7 +72,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Invoices</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInputs" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
@@ -105,7 +105,7 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button class="btn btn-secondary" wire:click="resetInputs" data-bs-dismiss="modal">Close</button>
                     <button class="btn btn-primary" data-bs-dismiss="modal"
                             data-bs-toggle="modal"
                             data-bs-target="#paymentModal">
@@ -180,7 +180,7 @@
                         @enderror
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Payment from</label>
+                        <label class="form-label">Payment for</label>
                         <select class="form-select" wire:model="selectedAccountId">
                             <option value="">Select</option>
                             @foreach ($accounts as $acc)

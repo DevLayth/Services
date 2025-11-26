@@ -63,7 +63,7 @@
 
                         <h5 class="modal-title fw-bold"><i class="bi bi-receipt"></i> Invoice</h5>
                     </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInput" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
             </div>
 
@@ -153,7 +153,7 @@
                 <button type="button" class="btn btn-warning px-4" onclick="window.print();">
                    <i class="bi bi-printer"></i> Print
                 </button>
-                <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                <button type="button" wire:click="resetInput" class="btn btn-secondary px-4" data-bs-dismiss="modal">
                     Close
                 </button>
             </div>
@@ -197,7 +197,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold">Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInput" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                  @if ($selectedInvoiceId)
                     @php
@@ -213,7 +213,7 @@
                 </div>
                 @endif
                 <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"
+                    <button type="button" wire:click="resetInput" class="btn btn-secondary px-4" data-bs-dismiss="modal"
                         >Cancel</button>
                     <button type="button" class="btn btn-danger px-4" wire:click="deleteInvoice"
                         wire:loading.attr="disabled" data-bs-dismiss="modal">Yes, Delete</button>

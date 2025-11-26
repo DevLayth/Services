@@ -25,6 +25,7 @@ class Customers extends Component
         'delete.error'   => 'There was an error deleting the customer.',
 
         'service.add.success' => 'The service has been added to the customer successfully.',
+        'service.add.error.exists' => 'The customer already has this service.',
         'service.add.error'   => 'There was an error adding the service to the customer.',
     ];
 
@@ -44,10 +45,6 @@ class Customers extends Component
         return view('livewire.customers');
     }
 
-
-    // ---------------------------------------------------------
-    // Helpers
-    // ---------------------------------------------------------
 
     private function alert($key, $type = 'success')
     {
@@ -75,9 +72,7 @@ class Customers extends Component
     }
 
 
-    // ---------------------------------------------------------
-    // Create
-    // ---------------------------------------------------------
+
 
     public function addCustomer()
     {
@@ -103,9 +98,7 @@ class Customers extends Component
     }
 
 
-    // ---------------------------------------------------------
-    // Edit / Update
-    // ---------------------------------------------------------
+
 
     public function editCustomer($id)
     {
@@ -151,10 +144,6 @@ class Customers extends Component
     }
 
 
-    // ---------------------------------------------------------
-    // Delete
-    // ---------------------------------------------------------
-
     public function setCustomerId($id, $name)
     {
         $this->reset([
@@ -178,9 +167,7 @@ class Customers extends Component
         }
     }
 
-    // ---------------------------------------------------------
-    // Manage Services for Customer
-    // ---------------------------------------------------------
+    
     public function manageServices($id, $name)
     {
         $this->resetInput();
@@ -213,6 +200,18 @@ public function confirmAddService()
     $currencyId = DB::table('services')->where('id', $this->selectedServiceId)->value('currency_id') ?? null;
 
     try {
+
+        $existingSubscription = DB::table('subscriptions')->where('customer_id', $this->customerId)
+            ->where('service_id', $this->selectedServiceId)
+            ->get()->first();
+
+        if ($existingSubscription) {
+            $this->alert('service.add.error.exists', 'danger');
+            $this->resetInput();
+            $this->fetchServicesForCustomer($this->customerId);
+            return;
+        }
+
         DB::table('subscriptions')->insert([
             'customer_id' => $this->customerId,
             'service_id'  => $this->selectedServiceId,

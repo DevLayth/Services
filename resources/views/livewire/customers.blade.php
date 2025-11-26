@@ -95,7 +95,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="reset" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" wire:click="resetInput" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" wire:loading.attr="disabled" wire:click="{{ $editMode ? 'updateCustomer' : 'addCustomer' }}"
                           @if ($editMode)
                         data-bs-dismiss="modal"
@@ -114,14 +114,14 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold">Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInput" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body text-center py-4 fs-5">
                     <strong class="text-danger">Are you sure?</strong>
                     <p class="text-muted">You are about to delete: {{ $name }}</p>
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" wire:click="resetInput" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-danger px-4" wire:click="deleteCustomer" wire:loading.attr="disabled" data-bs-dismiss="modal">Yes, Delete</button>
                 </div>
             </div>

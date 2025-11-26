@@ -20,6 +20,7 @@
                 </tr>
             </thead>
             <tbody>
+
                 @foreach($accounts as $account)
                 <tr>
                     <td>{{ $account->id }}</td>
@@ -44,6 +45,12 @@
                 </tr>
                 @endforeach
             </tbody>
+
+            @empty($accounts)
+                <tr>
+                    <td colspan="4" class="text-center text-muted">No accounts found.</td>
+                </tr>
+            @endempty
         </table>
     </div>
 
@@ -53,7 +60,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Add Account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInput"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" wire:click="resetInputs"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
@@ -75,7 +82,7 @@
                     </div>
                 </div>
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetInput">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" wire:click="resetInputs">Close</button>
                     <button type="button" class="btn btn-primary" wire:click="addAccount()" wire:loading.attr="disabled">Add Account</button>
                 </div>
             </div>
@@ -90,7 +97,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title fw-bold">Confirm Delete</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInputs" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                  @if ($selectedAccountId)
                     @php
@@ -106,7 +113,7 @@
                 </div>
                 @endif
                 <div class="modal-footer d-flex justify-content-between">
-                    <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal"
+                    <button type="button" wire:click="resetInputs" class="btn btn-secondary px-4" data-bs-dismiss="modal"
                         >Cancel</button>
                     <button type="button" class="btn btn-danger px-4" wire:click="deleteAccount()"
                         wire:loading.attr="disabled" data-bs-dismiss="modal">Yes, Delete</button>

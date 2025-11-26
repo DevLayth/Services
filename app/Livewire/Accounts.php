@@ -35,7 +35,7 @@ class Accounts extends Component
         $this->loadAccounts();
     }
 
-    public function resetInput()
+    public function resetInputs()
     {
         $this->accountName = '';
         $this->accountType = '';
@@ -79,7 +79,7 @@ class Accounts extends Component
             ]);
             $this->alert('add.success', 'success');
             $this->loadAccounts();
-            $this->resetInput();
+            $this->resetInputs();
         } catch (\Exception $e) {
             $this->alert('add.error', 'error');
         }
@@ -98,7 +98,7 @@ class Accounts extends Component
                 DB::table('accounts')->where('id', $this->selectedAccountId)->delete();
 
                 $this->alert('delete.Success', 'success');
-                $this->resetInput();
+                $this->resetInputs();
                 $this->loadAccounts();
             } catch (\Exception $e) {
                 $this->alert('delete.Error', 'error');

@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Livewire;
+
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class Dashboard extends Component
 {
-    public $customers=[
+    public $customers = [
         'totalCustomers',
         'todayCustomers',
         'todayPercent',
@@ -28,6 +29,14 @@ class Dashboard extends Component
         'totalInvoices',
         'todayInvoices',
         'todayPercent',
+    ];
+
+
+    public $totals = [
+
+        'Cash_assets',
+        'Cash_credits',
+        'Cash_debts',
     ];
 
 
@@ -53,6 +62,21 @@ class Dashboard extends Component
         $this->invoices['totalInvoices'] = DB::table('paid_invoices')->count();
         $this->invoices['todayInvoices'] = DB::table('paid_invoices')->whereDate('created_at', today())->count();
         $this->invoices['todayPercent'] = $this->invoices['totalInvoices'] > 0 ? ($this->invoices['todayInvoices'] / $this->invoices['totalInvoices']) * 100 : 0;
-    }
 
+        $this->totals['Cash_assets'] = DB::table('journal_entries_lines')
+            ->join('accounts', 'accounts.id', '=', 'journal_entries_lines.account_id')
+            ->where('accounts.name', 'Cash')
+            ->selectRaw('SUM(debit) - SUM(credit) as balance')
+            ->value('balance');
+
+        $this->totals['Cash_debts'] = DB::table('journal_entries_lines')
+            ->join('accounts', 'accounts.id', '=', 'journal_entries_lines.account_id')
+            ->where('accounts.name', 'Cash')
+            ->sum('debit');
+            
+        $this->totals['Cash_credits'] = DB::table('journal_entries_lines')
+            ->join('accounts', 'accounts.id', '=', 'journal_entries_lines.account_id')
+            ->where('accounts.name', 'Cash')
+            ->sum('credit');
+    }
 }

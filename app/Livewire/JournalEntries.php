@@ -67,6 +67,7 @@ class JournalEntries extends Component
 
     public function resetInput()
     {
+        $this->selectedJournalEntryId = null;
         $this->journalEntryLines = [];
         $this->resetValidation();
     }
