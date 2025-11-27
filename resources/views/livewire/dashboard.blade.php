@@ -93,25 +93,7 @@
             </div>
 
 
-            <!--Total Cash Assets Card -->
-            <div class="col-md-6 mb-4">
-                <div class="card h-100 shadow-sm rounded-4 border-0 bg-white cursor-pointer hover-scale">
-                    <div class="card-body d-flex align-items-center">
-                        <div class="me-3">
-                            <div> <i class="bi bi-wallet2 fs-1 text-info"></i></div>
-                            <div>
-                                <h5 class="card-title text-dark">Total Cash Assets</h5>
-                                <h3 class="card-text text-dark">{{ number_format($totals['Cash_assets'], 2) }}</h3>
-                                <small class="text-muted">Debits:
-                                    {{ number_format($totals['Cash_debts'], 2) }}</small>
-                                <small class="text-muted">Credits:
-                                    {{ number_format($totals['Cash_credits'], 2) }}</small>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+           
 
 
         </div>

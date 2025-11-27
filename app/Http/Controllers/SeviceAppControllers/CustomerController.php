@@ -5,6 +5,8 @@ namespace App\Http\Controllers\SeviceAppControllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
+
 
 class CustomerController extends Controller
 {
@@ -12,14 +14,27 @@ class CustomerController extends Controller
     {
 
         try {
-            $request->validate([
+            $validator = Validator::make($request->all(), [
                 'customer_id' => 'required|integer|exists:customers,id',
             ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'errors' => $validator->errors(),
+                    'status_code' => 422
+                ], 422);
+            }
+
             $customerId = $request->customer_id;
             $customer = DB::table('customers')
                 ->where('id', $customerId)
                 ->select(
-                    'customers.*'
+                    'customers.id as customer_id',
+                    'customers.name as customer_name',
+                    'customers.phone as customer_phone',
+                    'customers.created_at as customer_created_at',
+                    'customers.updated_at as customer_updated_at'
                 )
                 ->first();
             return response()->json([

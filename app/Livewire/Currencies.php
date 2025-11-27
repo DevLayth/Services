@@ -11,6 +11,7 @@ class Currencies extends Component
     public $name;
     public $code;
     public $symbol;
+    public $rate;
     public $currencies = [];
 
     public $editMode = false;
@@ -47,6 +48,7 @@ class Currencies extends Component
             'name' => 'required|string|max:255',
             'code' => 'required|string|max:10',
             'symbol' => 'required|string|max:10',
+            'rate' => 'required|numeric',
         ]);
 
         try {
@@ -55,6 +57,7 @@ class Currencies extends Component
             'name' => $this->name,
             'code' => $this->code,
             'symbol' => $this->symbol,
+            'rate' => $this->rate,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -73,6 +76,7 @@ class Currencies extends Component
         $this->name = '';
         $this->code = '';
         $this->symbol = '';
+        $this->rate = 0;
         $this->currencyId = null;
         $this->editMode = false;
 
@@ -81,19 +85,29 @@ class Currencies extends Component
 
     public function fetchCurrencies()
     {
-        $this->currencies = DB::table('currencies')->get()->toArray();
+        try {
+            $this->currencies = DB::table('currencies')->get()->toArray();
+        } catch (\Exception $e) {
+            $this->currencies = [];
+        }
     }
 
     public function editCurrency($id)
     {
-        $currency = DB::table('currencies')->where('id', $id)->first();
+        try {
+             $currency = DB::table('currencies')->where('id', $id)->first();
         if ($currency) {
             $this->currencyId = $currency->id;
             $this->name = $currency->name;
             $this->code = $currency->code;
             $this->symbol = $currency->symbol;
+            $this->rate = $currency->rate;
             $this->editMode = true;
         }
+        } catch (\Exception $e) {
+            $this->alert('error', 'update');
+        }
+
     }
 
 
@@ -110,6 +124,7 @@ class Currencies extends Component
             'name' => $this->name,
             'code' => $this->code,
             'symbol' => $this->symbol,
+            'rate' => $this->rate,
             'updated_at' => now(),
         ]);
 

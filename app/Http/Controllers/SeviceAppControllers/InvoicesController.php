@@ -5,20 +5,31 @@ namespace App\Http\Controllers\SeviceAppControllers;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 
 class InvoicesController extends Controller
 {
+
+
  public function show(Request $request)
 {
     try {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'customer_id' => 'required|integer|exists:customers,id',
         ]);
 
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'errors' => $validator->errors(),
+                'status_code' => 422
+            ], 422);
+        }
+
         $customerId = $request->customer_id;
         $perPage = $request->get('per_page', 10);
-        $page=$request->get('page', 1);
+        $page = $request->get('page', 1);
 
         $invoices = DB::table('paid_invoices')
             ->join('subscriptions', 'subscriptions.id', '=', 'paid_invoices.subscription_id')
@@ -27,7 +38,11 @@ class InvoicesController extends Controller
             ->join('currencies', 'currencies.id', '=', 'paid_invoices.currency_id')
             ->where('customers.id', $customerId)
             ->select(
-                'paid_invoices.*',
+                'paid_invoices.id',
+                'paid_invoices.amount',
+                'paid_invoices.months',
+                'paid_invoices.paid_at',
+                'paid_invoices.created_at',
                 'customers.name as customer_name',
                 'customers.phone as customer_phone',
                 'services.name as service_name',
@@ -42,7 +57,6 @@ class InvoicesController extends Controller
                 'total'        => $invoices->total(),
                 'per_page'     => $invoices->perPage(),
                 'current_page' => $invoices->currentPage(),
-                'last_page'    => $invoices->lastPage(),
             ],
             'isEmpty' => $invoices->isEmpty(),
             'status_code' => 200,
@@ -55,5 +69,6 @@ class InvoicesController extends Controller
         ], 500);
     }
 }
+
 
 }

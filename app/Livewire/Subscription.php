@@ -20,6 +20,8 @@ class Subscription extends Component
     public $paymentMonths = 1;
     public $discount = 0;
     public $finalAmount = 0;
+    public $paymentCurrency;
+    public $currencyRate = 1;
 
     public $showMessage = false;
     public $message;
@@ -61,7 +63,9 @@ class Subscription extends Component
     public function render()
     {
         return view('livewire.subscription');
+
     }
+
 
     public function loadSubscriptions()
     {
@@ -86,8 +90,10 @@ class Subscription extends Component
 
     public function loadCurrencies()
     {
+        $currencies = DB::table('currencies')->get();
         try {
             $this->currencies = DB::table('currencies')->get();
+            $this->currencyRate = $currencies->firstWhere('id', $this->paymentCurrency)->rate ?? 0;
         } catch (\Exception $e) {
             Log::error($e);
             $this->currencies = [];
@@ -121,10 +127,10 @@ class Subscription extends Component
 
             $this->amount = $subscription->price;
             $this->currency_code = $subscription->currency_code;
+            $this->paymentCurrency = $subscription->currency_id;
             $this->paymentMonths = 1;
             $this->discount = 0;
 
-            $this->calculateTotal();
 
             $nextPayment = Carbon::parse($subscription->next_payment_date);
             $end = $subscription->end_date ? Carbon::parse($subscription->end_date) : now();
@@ -174,10 +180,24 @@ class Subscription extends Component
         $this->calculateTotal();
     }
 
+    public function updatedPaymentCurrency($value)
+    {
+        $this->loadCurrencies();
+        $this->calculateTotal();
+    }
+
     public function calculateTotal()
     {
-        $discountFactor = $this->discount? $this->discount / 100: 0/100;
-        $this->finalAmount = round($this->amount * $this->paymentMonths * (1 - $discountFactor), 2);
+        $discountFactor = $this->discount ? $this->discount / 100 : 0 / 100;
+      $this->finalAmount = number_format(
+    ($this->amount * $this->paymentMonths)
+    * (1 - $discountFactor)
+    * $this->currencyRate,
+    2,
+    '.',
+    ''
+);
+
     }
 
     public function pay()
@@ -197,19 +217,22 @@ class Subscription extends Component
 
             if (!$subscription) throw new \Exception("Subscription not found.");
 
-            $oneMonthPrice = $subscription->price;
+
+            $oneMonthPrice = $subscription->price * $this->currencyRate;
+
+
             $discountFactor = $this->discount / 100;
-            $finalAmount = $oneMonthPrice * $this->paymentMonths * (1 - $discountFactor);
+
             $nextPaymentDate = Carbon::parse($subscription->next_payment_date);
             $paidTo = $nextPaymentDate->copy()->addMonths((int) $this->paymentMonths);
 
-           $invoiceId =DB::table('paid_invoices')->insertGetId([
+            $invoiceId = DB::table('paid_invoices')->insertGetId([
                 'subscription_id' => $subscription->id,
                 'amount_one_month' => $oneMonthPrice,
                 'months' => (int) $this->paymentMonths,
-                'amount' => $finalAmount,
-                'currency_id' => $subscription->currency_id,
-                'discount' => $discountFactor,
+                'amount' => $this->finalAmount,
+                'currency_id' =>  $this->paymentCurrency,
+                'discount' => $this->discount,
                 'paid_from' => $nextPaymentDate,
                 'paid_to' => $paidTo,
                 'paid_at' => now(),
@@ -231,15 +254,16 @@ class Subscription extends Component
                     [
                         'account_id' => $this->selectedAccountId,
                         'debit' => 0,
-                        'credit' => $finalAmount,
+                        'credit' => $this->finalAmount,
                     ],
                     [
                         'account_id' => $this->paymentMethod,
-                        'debit' => $finalAmount,
+                        'debit' => $this->finalAmount,
                         'credit' => 0,
                     ],
-                ]
-                , $invoiceId, 'paid_invoices'
+                ],
+                $invoiceId,
+                'paid_invoices'
             );
             DB::commit();
             $this->loadSubscriptions();
@@ -250,6 +274,18 @@ class Subscription extends Component
             Log::error($e);
             $this->alert('pay.error', 'danger');
         }
+    }
+
+    public function initPaymentCurrency($subscriptionId)
+    {
+
+
+            $this->paymentCurrency = collect($this->subscriptions)
+                ->firstWhere('id', $subscriptionId)
+                ->currency_id ?? null  ;
+            $this->loadCurrencies();
+            $this->calculateTotal();
+
     }
 
 

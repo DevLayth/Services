@@ -19,6 +19,7 @@
                     <th>Name</th>
                     <th>Code</th>
                     <th>Symbol</th>
+                    <th>Rate</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -28,6 +29,7 @@
                         <td>{{ $currency->name }}</td>
                         <td>{{ $currency->code }}</td>
                         <td>{{ $currency->symbol }}</td>
+                        <td>{{ $currency->rate }}</td>
                         <td>
                             <button class="btn btn-sm btn-primary me-2" wire:click="editCurrency({{ $currency->id }})"
                                 data-bs-toggle="modal" data-bs-target="#currencyModal">
@@ -80,6 +82,13 @@
                             <label class="form-label @error('symbol') text-danger @enderror">Symbol</label>
                             <input type="text" class="form-control" wire:model.lazy="symbol">
                             @error('symbol')
+                                <div class="text-danger small mt-1">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label @error('rate') text-danger @enderror">Rate</label>
+                            <input type="number" step="0.0001" class="form-control" wire:model.lazy="rate">
+                            @error('rate')
                                 <div class="text-danger small mt-1">{{ $message }}</div>
                             @enderror
                         </div>

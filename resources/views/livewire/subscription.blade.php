@@ -36,7 +36,7 @@
                             <td>{{ $sub->next_payment_date }}</td>
                             <td>{{ $sub->end_date ?? 'N/A' }}</td>
                             <td class="text-center">
-                                @if(!$sub->end_date || $sub->end_date > now())
+                                @if (!$sub->end_date || $sub->end_date > now())
                                     <span class="badge bg-success">Active</span>
                                 @else
                                     <span class="badge bg-secondary">Inactive</span>
@@ -44,9 +44,8 @@
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-sm btn-primary me-1"
-                                        wire:click="generateInvoices({{ $sub->id }})"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#invoiceModal">
+                                    wire:click="generateInvoices({{ $sub->id }})" data-bs-toggle="modal"
+                                    data-bs-target="#invoiceModal">
                                     <i class="bi bi-eye"></i>
                                 </button>
 
@@ -76,7 +75,7 @@
                 </div>
 
                 <div class="modal-body">
-                    @if($invoicesCount > 0)
+                    @if ($invoicesCount > 0)
                         <table class="table table-striped">
                             <thead>
                                 <tr>
@@ -88,13 +87,13 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($invoices as $inv)
+                                @foreach ($invoices as $inv)
                                     <tr>
                                         <td>{{ $inv['invoice_month'] }}</td>
                                         <td>{{ $inv['invoice_date'] }}</td>
                                         <td>{{ $inv['customer_name'] }}</td>
                                         <td>{{ $inv['service_name'] }}</td>
-                                        <td>{{ number_format($inv['price'],2) }} {{ $inv['currency_code'] }}</td>
+                                        <td>{{ number_format($inv['price'], 2) }} {{ $inv['currency_code'] }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -106,9 +105,9 @@
 
                 <div class="modal-footer">
                     <button class="btn btn-secondary" wire:click="resetInputs" data-bs-dismiss="modal">Close</button>
-                    <button class="btn btn-primary" data-bs-dismiss="modal"
-                            data-bs-toggle="modal"
-                            data-bs-target="#paymentModal">
+                    <button class="btn btn-primary" data-bs-dismiss="modal" data-bs-toggle="modal"
+                    wire:click="initPaymentCurrency({{ $selectedSubscriptionId }})"
+                        data-bs-target="#paymentModal">
                         Process Payment
                     </button>
                 </div>
@@ -116,7 +115,7 @@
         </div>
     </div>
 
-        <!-- Alert Messages -->
+    <!-- Alert Messages -->
     @if ($showMessage)
         <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080; min-width: 250px;">
             <div class="alert alert-{{ $messageType }} d-flex align-items-center justify-content-between shadow-sm rounded-3 p-2 mb-2"
@@ -148,23 +147,33 @@
 
                     <div class="mb-3">
                         <label class="form-label">Months to Pay</label>
-                        <input type="number" class="form-control"
-                               wire:model.live="paymentMonths"
-                               min="1">
+                        <input type="number" class="form-control" wire:model.live="paymentMonths" min="1">
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Discount (%)</label>
-                        <input type="number" class="form-control"
-                               wire:model.live="discount"
-                               min="0"
-                               max="100">
+                        <input type="number" class="form-control" wire:model.live="discount" min="0"
+                            max="100">
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Currency</label>
+                        <select class="form-select" wire:model.live="paymentCurrency">
+                            <option value="">Select</option>
+                            @foreach ($currencies as $currency)
+                                <option value="{{ $currency->id }}">{{ $currency->name }} ({{ $currency->code }})
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('selectedAccountId')
+                            <span class="text-danger">{{ $message }}</span>
+                        @enderror
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label">Total Amount</label>
-                        <input type="text" class="form-control"
-                               value="{{ number_format($finalAmount ?? 0,2) }}" readonly>
+                        <input type="text" class="form-control" wire:model.live="finalAmount" readonly>
                     </div>
 
                     <div class="mb-3">
@@ -172,7 +181,8 @@
                         <select class="form-select" wire:model="paymentMethod">
                             <option value="">Select</option>
                             @foreach ($accounts as $acc)
-                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->account_type }})</option>
+                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->account_type }})
+                                </option>
                             @endforeach
                         </select>
                         @error('selectedAccountId')
@@ -184,7 +194,8 @@
                         <select class="form-select" wire:model="selectedAccountId">
                             <option value="">Select</option>
                             @foreach ($accounts as $acc)
-                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->account_type }})</option>
+                                <option value="{{ $acc->id }}">{{ $acc->name }} ({{ $acc->account_type }})
+                                </option>
                             @endforeach
                         </select>
                         @error('selectedAccountId')
