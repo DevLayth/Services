@@ -1,6 +1,14 @@
 <div>
         <h1 class="mb-4">Paid Invoices</h1>
+<button type="button" class="btn btn-secondary btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#filterModal">
+    <i class="bi bi-funnel"></i> Filters
+    <span class="badge bg-light text-dark ms-1" id="activeFiltersCount">{{ $this->activeFiltersCount }}</span>
+</button>
 
+<button class="btn btn-warning btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#exportModal">
+    <i class="bi bi-box-arrow-up"></i> Export
+    <span class="badge bg-light text-dark ms-1"></span>
+</button>
     {{-- Invoices Table Card --}}
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
@@ -47,10 +55,147 @@
                             </tr>
                         @endforelse
                     </tbody>
+
+
                 </table>
             </div>
         </div>
     </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Total Amount USD:
+                <span class="badge bg-success rounded-pill">{{ number_format($totals['totalAmountUSD'], 2) }} USD</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                Total Amount IQD:
+                <span class="badge bg-success rounded-pill">{{ number_format($totals['totalAmountIQD'], 2) }} IQD</span>
+            </li>
+        </ul>
+    </div>
+
+
+    <!-- Export Modal -->
+    <div wire:ignore.self class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-box-arrow-up"></i> Export Invoices</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Select the format to export your invoices:</p>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-success w-50"><i class="bi bi-file-earmark-excel"></i> Excel</button>
+                    <button class="btn btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf"></i> PDF</button>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+    <!-- Filter Modal -->
+<div wire:ignore.self class="modal fade" id="filterModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg">
+
+            <!-- Modal Header -->
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-funnel"></i> Filter Invoices</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-person"></i> Customer</label>
+                        <input type="text" class="form-control" wire:model.live="filter.customer" placeholder="Search customer...">
+                        @if($filter['customer'])
+                            <span class="badge bg-info mt-1">{{ $filter['customer'] }}</span>
+                        @endif
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-briefcase"></i> Service</label>
+                        <input type="text" class="form-control" wire:model.live="filter.service" placeholder="Search service...">
+                        @if($filter['service'])
+                            <span class="badge bg-warning mt-1">{{ $filter['service'] }}</span>
+                        @endif
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-calendar-minus"></i> Date From</label>
+                        <input type="date" class="form-control" wire:model.live="filter.from">
+                        @if($filter['from'])
+                            <span class="badge bg-success mt-1">{{ $filter['from'] }}</span>
+                        @endif
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-calendar-plus"></i> Date To</label>
+                        <input type="date" class="form-control" wire:model.live="filter.to">
+                        @if($filter['to'])
+                            <span class="badge bg-success mt-1">{{ $filter['to'] }}</span>
+                        @endif
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-arrow-down-left-circle"></i> Min Amount</label>
+                        <input type="number" class="form-control" wire:model.live="filter.amount_from" step="0.01">
+                        @if($filter['amount_from'])
+                            <span class="badge bg-secondary mt-1">{{ $filter['amount_from'] }}</span>
+                        @endif
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-arrow-up-right-circle"></i> Max Amount</label>
+                        <input type="number" class="form-control" wire:model.live="filter.amount_to" step="0.01">
+                        @if($filter['amount_to'])
+                            <span class="badge bg-secondary mt-1">{{ $filter['amount_to'] }}</span>
+                        @endif
+                    </div>
+
+                      <div class="col-md-6">
+                        <label class="form-label small text-muted"><i class="bi bi-currency-dollar"></i> Currency</label>
+                        <select class="form-select" wire:model.live="filter.currency">
+                            <option value="">All</option>
+                        @foreach ($currencies as $currency)
+                            <option value="{{ $currency->code }}">{{ $currency->code }} - {{ $currency->name }}</option>
+                        @endforeach
+                        </select>
+                        @if($filter['currency'])
+                            <span class="badge bg-primary mt-1">{{ $filter['currency'] }}</span>
+                        @endif
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" wire:click="resetFilters">
+                    <i class="bi bi-x-circle"></i> Reset
+                </button>
+
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" wire:click="loadInvoices">
+                    <i class="bi bi-funnel"></i> Apply
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 
 {{-- Invoice Modal --}}
 <div wire:ignore.self class="modal fade" id="invoiceModal" tabindex="-1">

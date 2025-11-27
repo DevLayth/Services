@@ -3,12 +3,15 @@
 namespace App\Livewire;
 
 use Illuminate\Support\Facades\DB;
-
+use Carbon\Carbon;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Invoices extends Component
 {
-    public $invoices = [];
+     use WithPagination;
+    public $invoices;
+    public $currencies  = [];
     public $selectedInvoiceId;
     public $showMessage = false;
     public $message;
@@ -18,6 +21,37 @@ class Invoices extends Component
         'delete.Error' => 'Failed to delete invoice.',
     ];
 
+    public $totals = [
+        'totalAmountUSD',
+        'totalAmountIQD',
+    ];
+
+public $filter = [
+    'customer'     => '',
+    'service'      => '',
+    'from'         => '',
+    'to'           => '',
+    'currency'     => '',
+    'amount_from'  => '',
+    'amount_to'    => '',
+];
+public function getActiveFiltersCountProperty()
+{
+    return collect($this->filter)->filter()->count();
+}
+
+    public function resetFilters()
+    {
+        $this->filter = [
+            'customer' => '',
+            'service' => '',
+            'from' => '',
+            'to' => '',
+            'currency' => '',
+            'amount_from' => '',
+            'amount_to' => '',
+        ];
+    }
     public function render()
     {
         return view('livewire.invoices');
@@ -25,7 +59,10 @@ class Invoices extends Component
 
     public function mount()
     {
+        $this->filter['from'] = Carbon::today()->format('Y-m-d');
+        $this->filter['to'] = Carbon::today()->format('Y-m-d');
         $this->loadInvoices();
+        $this->loadCurrencies();
     }
     public function alert($key, $type = 'success')
     {
@@ -41,7 +78,7 @@ class Invoices extends Component
     public function loadInvoices()
     {
         try {
-            $this->invoices = DB::table('paid_invoices')
+            $invoicesForExport = DB::table('paid_invoices')
                 ->join('subscriptions', 'subscriptions.id', '=', 'paid_invoices.subscription_id')
                 ->join('customers', 'customers.id', '=', 'subscriptions.customer_id')
                 ->join('services', 'services.id', '=', 'subscriptions.service_id')
@@ -52,11 +89,45 @@ class Invoices extends Component
                     'customers.phone as customer_phone',
                     'services.name as service_name',
                     'currencies.code as currency_code'
-                )
-                ->get()
-                ->toArray();
+                )->orderBy('paid_invoices.id', 'desc');
+
+            if ($this->filter['customer']) {
+                $invoicesForExport->where('customers.name', 'like', '%' . $this->filter['customer'] . '%');
+            }
+            if ($this->filter['service']) {
+                $invoicesForExport->where('services.name', 'like', '%' . $this->filter['service'] . '%');
+            }
+            if ($this->filter['from']) {
+                $invoicesForExport->whereDate('paid_invoices.paid_at', '>=', $this->filter['from']);
+            }
+            if ($this->filter['to']) {
+                $invoicesForExport->whereDate('paid_invoices.paid_at', '<=', $this->filter['to']);
+            }
+            if ($this->filter['currency']) {
+                $invoicesForExport->where('currencies.code', $this->filter['currency']);
+            }
+            if ($this->filter['amount_from']) {
+                $invoicesForExport ->where('paid_invoices.amount', '>=', $this->filter['amount_from']);
+            }
+            if ($this->filter['amount_to']) {
+                $invoicesForExport->where('paid_invoices.amount', '<=', $this->filter['amount_to']);
+            }
+
+            $this->invoices = $invoicesForExport->get();
+
+            $this->totals['totalAmountUSD'] = $this->invoices->where('currency_code', 'USD')->sum('amount');
+            $this->totals['totalAmountIQD'] = $this->invoices->where('currency_code', 'IQD')->sum('amount');
         } catch (\Exception $e) {
-            $this->invoices = [];
+            $this->invoices = collect([]);
+        }
+    }
+
+    public function loadCurrencies()
+    {
+        try {
+            $this->currencies = DB::table('currencies')->get()->toArray();
+        } catch (\Exception $e) {
+            $this->currencies = [];
         }
     }
 
