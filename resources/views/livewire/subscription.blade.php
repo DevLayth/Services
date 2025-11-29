@@ -66,7 +66,12 @@
     </div>
 
     <!-- INVOICE MODAL -->
-    <div wire:ignore.self class="modal fade" id="invoiceModal" tabindex="-1">
+    <div wire:ignore.self class="modal fade" id="invoiceModal" tabindex="-1"
+        aria-labelledby="invoiceModalLabel" aria-hidden="true"
+        fallback="static"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false"
+        >
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
@@ -134,7 +139,10 @@
     @endif
 
     <!-- PAYMENT MODAL -->
-    <div wire:ignore.self class="modal fade" id="paymentModal" tabindex="-1">
+    <div wire:ignore.self class="modal fade" id="paymentModal" tabindex="-1"
+        aria-labelledby="paymentModalLabel" aria-hidden="true"
+        data-bs-backdrop="static"
+        data-bs-keyboard="false">
         <div class="modal-dialog">
             <div class="modal-content">
 
@@ -173,7 +181,7 @@
 
                     <div class="mb-3">
                         <label class="form-label">Total Amount</label>
-                        <input type="text" class="form-control" wire:model.live="finalAmount" readonly>
+                        <input type="text" class="form-control" wire:model.live="finalAmount">
                     </div>
 
                     <div class="mb-3">

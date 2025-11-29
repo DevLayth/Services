@@ -4,6 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+use function Laravel\Prompts\note;
+
 return new class extends Migration
 {
     /**
@@ -19,7 +21,9 @@ return new class extends Migration
             $table->decimal('credit', 15, 2)->default(0);
             $table->foreign('journal_entry_id')->references('id')->on('journal_entries')->
                 onDelete('cascade');
-            $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
+            $table->foreign('account_id')->references('id')->on('accounts')->
+                onDelete('restrict');
+            $table->string('note')->nullable();
             $table->timestamps();
         });
     }

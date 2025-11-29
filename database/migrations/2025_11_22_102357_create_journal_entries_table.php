@@ -13,8 +13,10 @@ return new class extends Migration
     {
         Schema::create('journal_entries', function (Blueprint $table) {
             $table->id();
-            $table->string('reference')->nullable();
-            $table->string('description')->nullable();
+            $table->unsignedBigInteger('currency_id')->references('id')->on('currencies');
+            $table->decimal('amount', 15, 2);
+            $table->decimal('dollar_price', 15, 2);
+            $table->string('note')->nullable();
             $table->timestamps();
         });
     }

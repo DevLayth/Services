@@ -8,9 +8,9 @@
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
-                        <th>ref</th>
-                        <th>Description</th>
                         <th>Invoice-Table</th>
+                        <th>Amount</th>
+                        <th>Currency</th>
                         <th>Created_at</th>
                         <th>Actions</th>
                     </tr>
@@ -19,9 +19,9 @@
                     @foreach ($journalEntries as $entry)
                         <tr>
                             <td>{{ $entry->id }}</td>
-                            <td>{{ $entry->reference }}</td>
-                            <td>{{ $entry->description }}</td>
                             <td>{{ $entry->invoice_id }}-{{ $entry->invoice_table_name }} </td>
+                            <td>{{ $entry->amount }}</td>
+                            <td>{{ $currencies[$entry->currency_id] ?? '' }}</td>
                             <td>{{ $entry->created_at }}</td>
                             <td>
                                 <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal"
@@ -30,16 +30,76 @@
                                     <i class="bi bi-eye"></i>
                                 </button>
 
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#notesModal"
+                                    wire:click="setSelectedJournalEntry({{ $entry->id }})">
+                                    <i class="bi bi-journal-minus"></i>
+                                </button>
                             </td>
                         </tr>
                     @endforeach
                 </tbody>
+                @empty($journalEntries)
+                    <tr>
+                        <td colspan="6" class="text-center text-secondary py-4">
+                            No Journal Entries Found.
+                        </td>
+                    </tr>
+                @endempty
             </table>
         </div>
     </div>
 
 
-    <!-- Modern Journal Entry Lines Modal -->
+<!-- Notes Modal -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-labelledby="notesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-md">
+        <div class="modal-content shadow-lg border-0">
+
+            <!-- Header -->
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="notesModalLabel">
+                    <i class="bi bi-journal-text fs-4"></i>
+                    <span class="fw-semibold">Journal Entry Notes</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body">
+                @php
+                    $entry = collect($journalEntries)->firstWhere('id', $selectedJournalEntryId);
+                    $entry = $entry ? (object) $entry : null;
+                @endphp
+
+                @if ($entry && $entry->note)
+                    <div class="card bg-light text-start overflow-auto" style="max-height: 300px;">
+                        <div class="card-body">
+                            <p class="mb-0">{{ $entry->note }}</p>
+                        </div>
+                    </div>
+                @else
+                    <div class="text-muted">
+                        <i class="bi bi-journal-x fs-1 mb-2 d-block"></i>
+                        <p class="mb-0">No notes available for this journal entry.</p>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+    <!-- Journal Entry Lines Modal -->
     <div wire:ignore.self class="modal fade" id="journalEntryLinesModal" tabindex="-1"
         aria-labelledby="journalEntryLinesLabel" aria-hidden="true">
 
@@ -52,7 +112,8 @@
                         <i class="bi bi-journal-text me-2"></i>
                         Journal Entry "{{ $selectedJournalEntryId }}" Lines
                     </h5>
-                    <button type="button" wire:click="resetInput" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" wire:click="resetInput" class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
                 </div>
 
                 <!-- Body -->

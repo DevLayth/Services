@@ -45,7 +45,7 @@
                 @endforeach
                 @empty($currencies)
                     <tr>
-                        <td colspan="4" class="text-center text-muted">No currencies found.</td>
+                        <td colspan="5" class="text-center text-muted">No currencies found.</td>
                     </tr>
                 @endempty
             </tbody>
@@ -129,7 +129,7 @@
 
 
 
-    <!-- Alerts (optional) -->
+    <!-- Alerts -->
     @if ($showMessage)
         <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080; min-width: 250px;">
             <div class="alert alert-{{ $messageType }} d-flex align-items-center justify-content-between shadow-sm rounded-3 p-2 mb-2"

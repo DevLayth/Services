@@ -19,8 +19,8 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->timestamps();
 
-            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');
-            $table->foreign('service_id')->references('id')->on('services')->onDelete('cascade');
+            $table->foreign('customer_id')->references('id')->on('customers')->onDelete('restrict');
+            $table->foreign('service_id')->references('id')->on('services')->onDelete('restrict');
         });
     }
 

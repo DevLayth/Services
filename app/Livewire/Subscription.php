@@ -220,9 +220,6 @@ class Subscription extends Component
 
             $oneMonthPrice = $subscription->price * $this->currencyRate;
 
-
-            $discountFactor = $this->discount / 100;
-
             $nextPaymentDate = Carbon::parse($subscription->next_payment_date);
             $paidTo = $nextPaymentDate->copy()->addMonths((int) $this->paymentMonths);
 
@@ -248,22 +245,26 @@ class Subscription extends Component
 
             createJournalEntry(
 
-                'Subscription Payment - Subscription #' . $subscription->id,
-                'Journal entry for subscription payment ID ' . $subscription->id,
+                $this->finalAmount,
+                $this->paymentCurrency,
+                $this->currencyRate,
                 [
                     [
                         'account_id' => $this->selectedAccountId,
                         'debit' => 0,
                         'credit' => $this->finalAmount,
+                        'note' => 'Subscription Payment',
                     ],
                     [
                         'account_id' => $this->paymentMethod,
                         'debit' => $this->finalAmount,
                         'credit' => 0,
+                        'note' => 'Subscription Payment',
                     ],
                 ],
                 $invoiceId,
-                'paid_invoices'
+                'paid_invoices',
+                'Subscription Payment'
             );
             DB::commit();
             $this->loadSubscriptions();
