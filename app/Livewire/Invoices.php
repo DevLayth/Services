@@ -6,8 +6,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Livewire\Component;
 use Livewire\WithPagination;
-use Mpdf\Mpdf;
-use Mpdf\HTMLParserMode;
+
 
 class Invoices extends Component
 {
@@ -22,6 +21,8 @@ class Invoices extends Component
     public $messages = [
         'delete.Success' => 'Invoice deleted successfully.',
         'delete.Error' => 'Failed to delete invoice.',
+        'update.Success' => 'Invoice updated successfully.',
+        'update.Error' => 'Failed to update invoice.',
     ];
 
     public $filter = [
@@ -41,7 +42,7 @@ class Invoices extends Component
     public $rowCount = 0;
     public function goToPage($page)
     {
-        $this->currentPage = $page;
+        $this->currentPage = max(1, $page);
         $this->loadInvoices();
     }
 
@@ -84,6 +85,7 @@ class Invoices extends Component
         $this->messageType = $type;
         $this->showMessage = true;
     }
+
     public function resetInput()
     {
         $this->selectedInvoiceId = null;
@@ -190,7 +192,7 @@ class Invoices extends Component
 
             $months = (int) $invoice->months;
             $newNextPaymentDate = \Carbon\Carbon::parse($subscription->next_payment_date)
-                ->subMonths($months);
+                ->subMonthNoOverflow($months);
 
             DB::beginTransaction();
 
@@ -226,46 +228,159 @@ class Invoices extends Component
     public $editedCurrencyId;
     public $editedMonths;
     public $editedDiscount;
+    public $oneMonthPrice;
+    public $editedDollarPrice;
+    public $currencyRate;
+
+    public function updatedEditedMonths()
+    {
+        $this->calculateEditedAmount();
+    }
+    public function updatedEditedDiscount()
+    {
+        $this->calculateEditedAmount();
+    }
+
+    public function updatedEditedCurrencyId()
+{
+    try {
+        $this->currencyRate = DB::table('currencies')->where('id', $this->editedCurrencyId)->value('rate') ?? 1;
+    } catch (\Exception $e) {
+        $this->currencyRate = 1;
+    }
+    $this->calculateEditedAmount();
+}
+public function calculateEditedAmount()
+{
+    $discountFactor = (100 - $this->editedDiscount) / 100;
+
+    // Base amount without currency
+    $baseAmount = $this->oneMonthPrice * $this->editedMonths * $discountFactor;
+
+    // Apply currency rate if available
+    $this->editedAmount = $this->currencyRate ? $baseAmount * $this->currencyRate : $baseAmount;
+
+    // Calculate dollar price
+    if ($this->editedCurrencyId == 1) { // assume 1 = USD
+        $this->editedDollarPrice = $this->editedAmount;
+    } elseif ($this->editedCurrencyId == 2) { // assume 2 = IQD
+        $this->editedDollarPrice = $this->editedAmount / 1420; // or use actual rate
+    } else {
+        $this->editedDollarPrice = $this->currencyRate ? $this->editedAmount / $this->currencyRate : $this->editedAmount;
+    }
+}
+
 
 
     public function editInvoice()
-{
-    $invoice = $this->invoices->firstWhere('id', $this->selectedInvoiceId);
+    {
+        $invoice = DB::table('paid_invoices')->where('id', $this->selectedInvoiceId)->first();
 
-    if ($invoice) {
-        $this->selectedInvoiceId = $invoice->id;
-        $this->editedAmount = $invoice->amount;
-        $this->editedCurrencyId = $invoice->currency_id;
-        $this->editedDiscount = $invoice->discount;
-        $this->editedMonths = $invoice->months;
+        if ($invoice) {
+            $this->selectedInvoiceId = $invoice->id;
+            $this->editedMonths = $invoice->months;
+            $this->oneMonthPrice = $invoice->amount / $invoice->months;
+            $this->editedAmount = $this->oneMonthPrice * $this->editedMonths;
+            $this->editedCurrencyId = $invoice->currency_id;
+            $this->editedDiscount = $invoice->discount;
+
+            $this->currencyRate = DB::table('currencies')->where('id', $this->editedCurrencyId)->value('rate');
+            $this->editedDollarPrice = $this->editedAmount / ($this->currencyRate ?: 1);
+        } else {
+            $this->alert('update.Error', 'danger');
+        }
     }
-}
-//continue here
+
+
 
     //update invoice
     public function updateInvoice()
     {
+        if (!$this->selectedInvoiceId) {
+            $this->alert('update.Error', 'danger');
+            return;
+        }
+
         try {
             DB::beginTransaction();
-            DB::transaction(function () {
-                DB::table('paid_invoices')->where('id', $this->selectedInvoiceId)->update([
-                    'amount' => $this->editedAmount,
+
+            $invoice = DB::table('paid_invoices')->where('id', $this->selectedInvoiceId)->first();
+            if (!$invoice) {
+                throw new \Exception('Invoice not found.');
+            }
+            $oldMonths = $invoice->months;
+
+            $discountFactor = (100 - $this->editedDiscount) / 100;
+            $this->editedAmount = $this->oneMonthPrice * $this->editedMonths * $discountFactor;
+            $this->currencyRate = DB::table('currencies')->where('id', $this->editedCurrencyId)->value('rate') ?: 1;
+            $this->editedDollarPrice = $this->editedAmount / $this->currencyRate;
+
+            DB::table('paid_invoices')->where('id', $this->selectedInvoiceId)->update([
+                'amount_one_month' => $this->oneMonthPrice* $this->currencyRate,
+                'amount' => $this->editedAmount * $this->currencyRate,
+                'currency_id' => $this->editedCurrencyId,
+                'months' => $this->editedMonths,
+                'updated_at' => now(),
+            ]);
+
+            $journalEntry = DB::table('journal_entries')
+                ->where('invoice_id', $this->selectedInvoiceId)
+                ->where('invoice_table_name', 'paid_invoices')
+                ->first();
+
+            if ($journalEntry) {
+                $newNote = ($journalEntry->note ?? '') . '|Updated entry for Invoice #' . $this->selectedInvoiceId;
+
+                DB::table('journal_entries')->where('id', $journalEntry->id)->update([
+                    'amount' => $this->editedAmount*$this->currencyRate,
                     'currency_id' => $this->editedCurrencyId,
-                    'dollar_price' => $this->editedDollarPrice,
-                    'months' => $this->editedMonths,
+                    'updated_at' => now(),
+                    'note' => $newNote,
+                ]);
+
+                $lines = DB::table('journal_entries_lines')
+                    ->where('journal_entry_id', $journalEntry->id)
+                    ->get();
+
+                $totalDebit = $lines->sum('debit');
+                $totalCredit = $lines->sum('credit');
+
+                if ($totalDebit > 0 && $totalCredit > 0) {
+                    foreach ($lines as $line) {
+                        $debitProportion = $line->debit / $totalDebit;
+                        $creditProportion = $line->credit / $totalCredit;
+
+                        DB::table('journal_entries_lines')->where('id', $line->id)->update([
+                            'debit' => $this->editedAmount * $debitProportion * $this->currencyRate,
+                            'credit' => $this->editedAmount * $creditProportion * $this->currencyRate,
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
+
+            $subscription = DB::table('subscriptions')->where('id', $invoice->subscription_id)->first();
+            if ($subscription) {
+                $newNextPaymentDate = Carbon::parse($subscription->next_payment_date)
+                    ->addMonthNoOverflow($this->editedMonths - $oldMonths);
+
+                DB::table('subscriptions')->where('id', $subscription->id)->update([
+                    'next_payment_date' => $newNextPaymentDate,
                     'updated_at' => now(),
                 ]);
-            });
-
+            }
 
             DB::commit();
+
             $this->alert('update.Success', 'success');
             $this->resetInput();
             $this->loadInvoices();
         } catch (\Exception $e) {
-            // Handle exception
+            DB::rollBack();
+            $this->alert('update.Error', 'danger');
         }
     }
+
 
     // public function ExportPdf()
     // {

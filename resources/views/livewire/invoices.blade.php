@@ -5,10 +5,7 @@
         <span class="badge bg-light text-dark ms-1" id="activeFiltersCount">{{ $this->activeFiltersCount }}</span>
     </button>
 
-    <button class="btn btn-warning btn-sm mb-3" data-bs-toggle="modal" data-bs-target="#exportModal">
-        <i class="bi bi-box-arrow-up"></i> Export
-        <span class="badge bg-light text-dark ms-1"></span>
-    </button>
+
     {{-- Invoices Table Card --}}
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
@@ -263,13 +260,13 @@
                     <div class="mb-3">
                         <label for="amount" class="form-label">Amount</label>
                         <input type="number" step="1" id="amount" class="form-control"
-                            wire:model="editedAmount">
+                            wire:model.live="editedAmount">
                     </div>
 
                     <!-- Currency -->
                     <div class="mb-3">
                         <label for="currencyId" class="form-label">Currency</label>
-                        <select name="currencyId" id="currencyId" class="form-select" wire:model="editedCurrencyId">
+                        <select name="currencyId" id="currencyId" class="form-select" wire:model.live="editedCurrencyId">
                             <option value="">-- Select Currency --</option>
                             @foreach ($currencies as $currency)
                                 <option value="{{ $currency->id }}">
@@ -282,52 +279,24 @@
                     <!-- Months -->
                     <div class="mb-3">
                         <label for="months" class="form-label">Months</label>
-                        <input type="number" id="months" class="form-control" wire:model="editedMonths">
+                        <input type="number" id="months" class="form-control" wire:model.live="editedMonths">
                     </div>
 
                     <!-- Discount -->
                     <div class="mb-3">
                         <label for="discount" class="form-label">Discount %</label>
-                        <input type="number" id="discount" class="form-control" wire:model="editedDiscount" min="0" max="100" step="1">
+                        <input type="number" id="discount" class="form-control" wire:model.live="editedDiscount" min="0" max="100" step="1">
                     </div>
 
                 </div>
 
                 <div class="modal-footer bg-light">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" wire:click="saveChanges">Save Changes</button>
+                    <button type="button" class="btn btn-primary" wire:click="updateInvoice">Save Changes</button>
                 </div>
             </div>
         </div>
     </div>
-
-
-    <!-- Export Modal -->
-    <div wire:ignore.self class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-md modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-warning text-white">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-box-arrow-up"></i> Export Invoices</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-
-                <div class="modal-body">
-                    <p>Select the format to export your invoices:</p>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-success w-50"><i class="bi bi-file-earmark-excel"></i>
-                            Excel</button>
-                        <button class="btn btn-outline-danger w-50"><i class="bi bi-file-earmark-pdf"></i>
-                            PDF</button>
-                    </div>
-                </div>
-
-                <div class="modal-footer bg-light">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
 
 
     <!-- Filter Modal -->

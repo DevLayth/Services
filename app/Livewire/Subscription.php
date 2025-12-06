@@ -238,7 +238,7 @@ class Subscription extends Component
             ]);
 
 
-            $newNext = $nextPaymentDate->copy()->addMonths((int) $this->paymentMonths);
+            $newNext = $nextPaymentDate->copy()->addMonthNoOverflow((int) $this->paymentMonths);
             DB::table('subscriptions')
                 ->where('id', $subscription->id)
                 ->update(['next_payment_date' => $newNext]);
